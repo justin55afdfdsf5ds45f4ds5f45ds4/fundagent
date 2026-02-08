@@ -1,0 +1,31 @@
+node_modules/
+dist/
+.env
+*.log
+
+# Data files (live trade/wallet data — regenerated at runtime)
+trades.json
+posts.json
+trade-count.txt
+data/
+
+# Secrets — DO NOT COMMIT
+moltbook.md
+
+# Internal dev notes (contain secrets/API keys)
+mustread*.md
+musread*.md
+src/mustread*.md
+
+# Temp files
+*.txt
+nul
+
+# Old internal planning docs
+DEPLOYMENT.md
+FINAL-ANSWER.md
+
+# IDE
+.vscode/
+.claude/
+.DS_Store

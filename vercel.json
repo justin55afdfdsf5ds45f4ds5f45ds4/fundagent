@@ -1,0 +1,11 @@
+{
+  "buildCommand": "",
+  "outputDirectory": "frontend",
+  "framework": null,
+  "rewrites": [
+    {
+      "source": "/api/status",
+      "destination": "/api/status.html"
+    }
+  ]
+}

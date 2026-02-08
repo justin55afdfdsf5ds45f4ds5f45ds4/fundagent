@@ -1,0 +1,38 @@
+{
+  "name": "fund-agent",
+  "version": "1.0.0",
+  "description": "Autonomous AI VC agent for Moltiverse Hackathon",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/agent.js",
+    "dev": "ts-node src/agent.ts",
+    "test": "node dist/test-agent.js",
+    "deploy-token": "ts-node scripts/deploy-token.ts",
+    "seed-wallet": "ts-node scripts/seed-wallet.ts"
+  },
+  "keywords": [
+    "monad",
+    "ai-agent",
+    "defi",
+    "hackathon"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.1",
+    "@nadfun/sdk": "^0.4.3",
+    "@types/ws": "^8.18.1",
+    "axios": "^1.7.9",
+    "dotenv": "^16.4.7",
+    "ethers": "^6.13.4",
+    "express": "^4.21.2",
+    "ws": "^8.19.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
+  }
+}
