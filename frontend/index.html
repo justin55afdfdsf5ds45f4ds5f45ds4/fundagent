@@ -292,6 +292,8 @@
             return '$UNKNOWN';
         }
 
+        var CLOUD_URL = 'https://jsonblob.com/api/jsonBlob/019c3de9-781c-7bb3-9e49-755216657e1f';
+
         async function updateDashboard() {
             try {
                 var response;
@@ -299,7 +301,12 @@
                     response = await fetch('/api/status');
                     if (!response.ok) throw new Error('Local failed');
                 } catch {
-                    return;
+                    try {
+                        response = await fetch(CLOUD_URL);
+                        if (!response.ok) throw new Error('Cloud failed');
+                    } catch {
+                        return;
+                    }
                 }
                 
                 var data = await response.json();

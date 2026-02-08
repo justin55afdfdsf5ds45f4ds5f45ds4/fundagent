@@ -19,6 +19,8 @@ interface Post {
 
 const POSTS_FILE = './posts.json';
 const STATE_FILE = './data/state.json';
+const JSONBLOB_ID = '019c3de9-781c-7bb3-9e49-755216657e1f';
+const JSONBLOB_URL = `https://jsonblob.com/api/jsonBlob/${JSONBLOB_ID}`;
 
 function loadPosts(): Post[] {
   try {
@@ -65,23 +67,41 @@ class FundAgent {
     }
   }
 
+  private getState() {
+    return {
+      status: 'running',
+      mode: this.mode,
+      postCount: this.postCount,
+      tradeCount: getTradeCount(),
+      balance: getBalance(),
+      trades: getTrades(),
+      posts: allPosts,
+      wallet: config.agentAddress,
+      lastUpdated: new Date().toISOString(),
+    };
+  }
+
   private saveState() {
     try {
-      const state = {
-        status: 'running',
-        mode: this.mode,
-        postCount: this.postCount,
-        tradeCount: getTradeCount(),
-        balance: getBalance(),
-        trades: getTrades(),
-        posts: allPosts,
-        wallet: config.agentAddress,
-        lastUpdated: new Date().toISOString(),
-      };
+      const state = this.getState();
       fs.mkdirSync('data', { recursive: true});
       fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
     } catch (error) {
       logger.error('Failed to save state', error);
+    }
+  }
+
+  private async syncToCloud() {
+    try {
+      const state = this.getState();
+      await fetch(JSONBLOB_URL, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(state),
+      });
+      logger.info('State synced to cloud');
+    } catch (e) {
+      logger.error('Cloud sync failed', e);
     }
   }
 
@@ -112,10 +132,17 @@ class FundAgent {
       }
     }, 30 * 60 * 1000);
 
-    // Save state every 30 seconds
+    // Save state every 30 seconds + sync to cloud every 60 seconds
     setInterval(() => {
       this.saveState();
     }, 30 * 1000);
+
+    setInterval(() => {
+      this.syncToCloud();
+    }, 60 * 1000);
+
+    // Initial cloud sync
+    this.syncToCloud();
 
     logger.info('Agent is running. Press Ctrl+C to stop.');
   }
