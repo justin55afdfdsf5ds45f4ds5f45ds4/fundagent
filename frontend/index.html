@@ -183,29 +183,38 @@
             padding: 15px;
             margin-bottom: 10px;
             border-radius: 6px;
+            cursor: pointer;
+            transition: border 0.2s;
+            border: 1px solid transparent;
         }
+        .vote-card:hover { border-color: #ff6600; }
         .vote-card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 8px;
         }
+        .vote-card-hint { color: #555; font-size: 0.75rem; margin-top: 4px; }
+        .vote-card.expanded .vote-card-hint { display: none; }
         .vote-token { color: #00ff00; font-size: 1.1rem; font-weight: bold; }
         .vote-result { padding: 3px 10px; border-radius: 12px; font-size: 0.85rem; font-weight: bold; }
         .vote-result-BUY, .vote-result-SELL { background: #00ff00; color: #000; }
         .vote-result-SKIP, .vote-result-HOLD { background: #333; color: #888; }
-        .vote-members { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+        .vote-members { display: none; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+        .vote-card.expanded .vote-members { display: flex; }
         .vote-member {
             background: #111;
             border: 1px solid #333;
-            padding: 8px 12px;
+            padding: 12px 15px;
             border-radius: 6px;
             flex: 1;
-            min-width: 180px;
+            min-width: 220px;
         }
-        .vote-member-name { font-weight: bold; font-size: 0.9rem; }
-        .vote-member-decision { font-size: 0.85rem; margin-top: 3px; }
-        .vote-member-reasoning { color: #888; font-size: 0.8rem; margin-top: 3px; }
+        .vote-member-name { font-weight: bold; font-size: 0.95rem; color: #ff6600; }
+        .vote-member-decision { font-size: 0.9rem; margin-top: 5px; }
+        .vote-member-reasoning { color: #aaa; font-size: 0.85rem; margin-top: 6px; line-height: 1.4; }
+        .vote-deliberation { color: #ccc; font-size: 0.85rem; margin-top: 10px; padding: 10px; background: #0d0d0d; border-radius: 4px; border-left: 3px solid #ff6600; display: none; line-height: 1.4; }
+        .vote-card.expanded .vote-deliberation { display: block; }
         .footer {
             text-align: center;
             margin-top: 50px;
@@ -421,10 +430,10 @@
                 if (data.committeeEnabled && data.committeeHistory && data.committeeHistory.length > 0) {
                     document.getElementById('committee-panel').style.display = 'block';
                     var votesHtml = '';
-                    data.committeeHistory.slice(0, 5).forEach(function(cd) {
+                    data.committeeHistory.slice(0, 10).forEach(function(cd) {
                         var resultClass = 'vote-result-' + cd.finalDecision;
                         var actionLabel = cd.action === 'BUY_EVAL' ? 'BUY VOTE' : 'SELL VOTE';
-                        votesHtml += '<div class="vote-card">' +
+                        votesHtml += '<div class="vote-card" onclick="this.classList.toggle(\'expanded\')">' +
                             '<div class="vote-card-header">' +
                                 '<span class="vote-token">$' + esc(cd.symbol) + ' — ' + actionLabel + '</span>' +
                                 '<span class="vote-result ' + resultClass + '">' + esc(cd.finalDecision) + '</span>' +
@@ -432,16 +441,21 @@
                             '<div style="color:#888;font-size:0.8rem">' + new Date(cd.time).toLocaleString() +
                                 ' | Tally: ' + Object.keys(cd.voteTally || {}).map(function(k) { return k + ': ' + cd.voteTally[k]; }).join(', ') +
                             '</div>' +
+                            '<div class="vote-card-hint">Click to expand votes</div>' +
                             '<div class="vote-members">';
                         (cd.votes || []).forEach(function(v) {
                             var vColor = v.decision === 'BUY' || v.decision === 'SELL' ? '#00ff00' : '#666';
                             votesHtml += '<div class="vote-member">' +
                                 '<div class="vote-member-name">' + esc(v.member) + '</div>' +
                                 '<div class="vote-member-decision" style="color:' + vColor + '">' + esc(v.decision) + ' (' + Math.round(v.confidence * 100) + '%)</div>' +
-                                '<div class="vote-member-reasoning">' + esc((v.reasoning || '').substring(0, 100)) + '</div>' +
+                                '<div class="vote-member-reasoning">' + esc(v.reasoning || '') + '</div>' +
                             '</div>';
                         });
-                        votesHtml += '</div></div>';
+                        votesHtml += '</div>';
+                        if (cd.deliberation) {
+                            votesHtml += '<div class="vote-deliberation"><strong>Deliberation:</strong> ' + esc(cd.deliberation) + '</div>';
+                        }
+                        votesHtml += '</div>';
                     });
                     document.getElementById('committee-votes').innerHTML = votesHtml;
                 } else {
