@@ -5,7 +5,7 @@
   "rewrites": [
     {
       "source": "/api/status",
-      "destination": "/api/status.html"
+      "destination": "/api/status.js"
     }
   ]
 }
