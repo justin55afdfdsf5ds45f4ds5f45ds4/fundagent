@@ -5,7 +5,7 @@ trading:
   buyIntervalMs: 10800000      # 3 hours
   sellIntervalMs: 18000000     # 5 hours
   buyAmountMON: 1
-  maxTotalTrades: 30
+  maxTotalTrades: 50
   confidenceThreshold: 0.3
   buyBiasPercent: 60
   sellBiasPercent: 40
