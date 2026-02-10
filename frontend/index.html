@@ -429,11 +429,18 @@
                 // Committee votes
                 if (data.committeeEnabled && data.committeeHistory && data.committeeHistory.length > 0) {
                     document.getElementById('committee-panel').style.display = 'block';
+                    // Remember which cards are expanded before re-render
+                    var expandedSet = {};
+                    document.querySelectorAll('.vote-card.expanded').forEach(function(el) {
+                        expandedSet[el.getAttribute('data-vote-id')] = true;
+                    });
                     var votesHtml = '';
-                    data.committeeHistory.slice(0, 10).forEach(function(cd) {
+                    data.committeeHistory.slice(0, 10).forEach(function(cd, idx) {
+                        var voteId = cd.symbol + '-' + cd.action + '-' + idx;
+                        var isExpanded = expandedSet[voteId] ? ' expanded' : '';
                         var resultClass = 'vote-result-' + cd.finalDecision;
                         var actionLabel = cd.action === 'BUY_EVAL' ? 'BUY VOTE' : 'SELL VOTE';
-                        votesHtml += '<div class="vote-card" onclick="this.classList.toggle(\'expanded\')">' +
+                        votesHtml += '<div class="vote-card' + isExpanded + '" data-vote-id="' + voteId + '" onclick="this.classList.toggle(\'expanded\')">' +
                             '<div class="vote-card-header">' +
                                 '<span class="vote-token">$' + esc(cd.symbol) + ' — ' + actionLabel + '</span>' +
                                 '<span class="vote-result ' + resultClass + '">' + esc(cd.finalDecision) + '</span>' +
