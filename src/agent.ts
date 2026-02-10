@@ -19,8 +19,8 @@ interface Post {
 
 const POSTS_FILE = './posts.json';
 const STATE_FILE = './data/state.json';
-const JSONBLOB_ID = '019c3de9-781c-7bb3-9e49-755216657e1f';
-const JSONBLOB_URL = `https://jsonblob.com/api/jsonBlob/${JSONBLOB_ID}`;
+const SUPABASE_URL = 'https://ickofgczqgorlqggdrrp.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlja29mZ2N6cWdvcmxxZ2dkcnJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2ODI0MDcsImV4cCI6MjA4NjI1ODQwN30.Af5HrQwOT9wLMv8qR4BFAaNNIDkm1jxg6Rj-WbZeDA4';
 
 function loadPosts(): Post[] {
   try {
@@ -94,12 +94,23 @@ class FundAgent {
   private async syncToCloud() {
     try {
       const state = this.getState();
-      await fetch(JSONBLOB_URL, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(state),
+      // Upsert row with id=1 into agent_state table
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/agent_state?on_conflict=id`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Prefer': 'resolution=merge-duplicates',
+        },
+        body: JSON.stringify({ id: 1, state, updated_at: new Date().toISOString() }),
       });
-      logger.info('State synced to cloud');
+      if (!res.ok) {
+        const err = await res.text();
+        logger.error(`Cloud sync HTTP ${res.status}: ${err}`);
+      } else {
+        logger.info('State synced to Supabase');
+      }
     } catch (e) {
       logger.error('Cloud sync failed', e);
     }
