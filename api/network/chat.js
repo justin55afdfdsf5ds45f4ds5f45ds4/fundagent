@@ -23,31 +23,16 @@ async function getMessages() {
 }
 
 async function saveMessages(data) {
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/agent_state?id=eq.${MESSAGES_ROW_ID}`,
-    {
-      method: 'PATCH',
-      headers: {
-        apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`,
-        'Content-Type': 'application/json',
-        Prefer: 'return=minimal',
-      },
-      body: JSON.stringify({ state: data }),
-    }
-  );
-  if (res.status === 404 || res.status === 406) {
-    await fetch(`${SUPABASE_URL}/rest/v1/agent_state`, {
-      method: 'POST',
-      headers: {
-        apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`,
-        'Content-Type': 'application/json',
-        Prefer: 'return=minimal',
-      },
-      body: JSON.stringify({ id: MESSAGES_ROW_ID, state: data }),
-    });
-  }
+  await fetch(`${SUPABASE_URL}/rest/v1/agent_state`, {
+    method: 'POST',
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      Prefer: 'resolution=merge-duplicates,return=minimal',
+    },
+    body: JSON.stringify({ id: MESSAGES_ROW_ID, state: data }),
+  });
 }
 
 export default async function handler(req) {
