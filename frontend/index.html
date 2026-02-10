@@ -275,6 +275,18 @@
         .how-title { font-weight: 600; font-size: 0.9rem; color: var(--text-white); font-family: var(--font-display); margin-bottom: 6px; }
         .how-desc { font-size: 0.78rem; color: var(--text-secondary); line-height: 1.5; }
 
+        /* ====== SKELETON LOADING ====== */
+        @keyframes shimmer { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
+        .skeleton { background: linear-gradient(90deg, var(--bg-card) 25%, #1a1a1a 50%, var(--bg-card) 75%); background-size: 800px 100%; animation: shimmer 1.5s infinite; border-radius: var(--radius-sm); }
+        .skeleton-text { height: 14px; margin-bottom: 10px; border-radius: 4px; }
+        .skeleton-text-sm { height: 10px; width: 60%; margin-bottom: 8px; }
+        .skeleton-card { background: var(--bg-card); border: 1px solid var(--border-dim); border-radius: var(--radius); padding: 20px; }
+        .skeleton-stat { height: 50px; border-radius: var(--radius-sm); }
+        .skeleton-row { display: flex; gap: 12px; margin-bottom: 10px; }
+        .skeleton-avatar { width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0; }
+        .skeleton-block { height: 80px; border-radius: var(--radius-sm); }
+        .skel-hidden { display: none; }
+
         /* ====== FOOTER ====== */
         .footer { text-align: center; padding: 30px 24px; color: var(--text-muted); font-size: 0.78rem; border-top: 1px solid var(--border-dim); margin-top: 40px; }
         .footer a { color: var(--green); text-decoration: none; }
@@ -322,7 +334,15 @@
         <div class="page-title">Dashboard</div>
         <div class="page-subtitle">Autonomous AI Venture Capitalist on Monad</div>
     </div>
-    <div class="stats-grid">
+    <!-- Skeleton stats -->
+    <div class="stats-grid" id="d-stats-skel">
+        <div class="stat-card"><div class="stat-label">Portfolio Value</div><div class="skeleton skeleton-text" style="width:70%;height:28px;margin-top:4px"></div></div>
+        <div class="stat-card"><div class="stat-label">Total Trades</div><div class="skeleton skeleton-text" style="width:40%;height:28px;margin-top:4px"></div></div>
+        <div class="stat-card"><div class="stat-label">Posts Made</div><div class="skeleton skeleton-text" style="width:35%;height:28px;margin-top:4px"></div></div>
+        <div class="stat-card"><div class="stat-label">Current Mode</div><div class="skeleton skeleton-text" style="width:50%;height:28px;margin-top:4px"></div></div>
+    </div>
+    <!-- Real stats (hidden until data loads) -->
+    <div class="stats-grid skel-hidden" id="d-stats-real">
         <div class="stat-card"><div class="stat-label">Portfolio Value</div><div class="stat-value" id="d-balance">0 MON</div></div>
         <div class="stat-card"><div class="stat-label">Total Trades</div><div class="stat-value" id="d-trades">0</div></div>
         <div class="stat-card"><div class="stat-label">Posts Made</div><div class="stat-value" id="d-posts">0</div></div>
@@ -332,7 +352,14 @@
         <div class="strategy-info"><span class="strategy-name" id="d-strategy-name"></span><span class="strategy-desc" id="d-strategy-desc"></span></div>
         <span class="badge badge-orange" id="d-committee-badge" style="display:none">COMMITTEE MODE</span>
     </div>
-    <div class="grid-2">
+    <!-- Skeleton grid -->
+    <div class="grid-2" id="d-grid-skel">
+        <div class="panel"><div class="panel-header"><span class="panel-title">Current Holdings</span></div><div class="skeleton skeleton-block" style="height:40px;margin-bottom:8px"></div><div class="skeleton skeleton-block" style="height:40px;margin-bottom:8px"></div><div class="skeleton skeleton-block" style="height:40px"></div></div>
+        <div class="panel"><div class="panel-header"><span class="panel-title">Latest Committee Votes</span></div><div class="skeleton skeleton-block" style="height:40px;margin-bottom:8px"></div><div class="skeleton skeleton-block" style="height:40px;margin-bottom:8px"></div><div class="skeleton skeleton-block" style="height:40px"></div></div>
+    </div>
+    <div class="panel" id="d-activity-skel"><div class="panel-header"><span class="panel-title">Recent Activity</span></div><div class="skeleton skeleton-block" style="height:50px;margin-bottom:8px"></div><div class="skeleton skeleton-block" style="height:50px;margin-bottom:8px"></div><div class="skeleton skeleton-block" style="height:50px"></div></div>
+    <!-- Real grid (hidden until data) -->
+    <div class="grid-2 skel-hidden" id="d-grid-real">
         <div class="panel">
             <div class="panel-header"><span class="panel-title">Current Holdings</span><a class="panel-link" onclick="navigateTo('activity')">View all</a></div>
             <table class="tbl"><thead><tr><th>Token</th><th>Amount</th><th>Link</th></tr></thead>
@@ -343,7 +370,7 @@
             <div id="d-committee-mini" style="color:var(--text-muted);font-size:0.82rem;padding:20px 0;text-align:center">No committee votes yet</div>
         </div>
     </div>
-    <div class="panel">
+    <div class="panel skel-hidden" id="d-activity-real">
         <div class="panel-header"><span class="panel-title">Recent Activity</span><a class="panel-link" onclick="navigateTo('activity')">View all</a></div>
         <div id="d-activity-mini"></div>
     </div>
@@ -539,7 +566,8 @@ function renderPage(p){if(p==='dashboard')renderDashboard();else if(p==='committ
 function computeHoldings(d){var h={};if(d.trades)d.trades.forEach(function(t){var k=t.token;if(!h[k])h[k]={symbol:t.symbol,name:t.name,token:t.token,bought:0,sold:0,thesis:t.thesis};if(t.type==='SELL')h[k].sold+=parseFloat(t.amount);else h[k].bought+=parseFloat(t.amount);});var r=[];Object.keys(h).forEach(function(k){if(h[k].bought-h[k].sold>0)r.push(h[k]);});r.sort(function(a,b){return(b.bought-b.sold)-(a.bought-a.sold);});return r;}
 
 // DASHBOARD
-function renderDashboard(){var d=state.data;if(!d)return;
+function showDashboardReal(){document.getElementById('d-stats-skel').style.display='none';document.getElementById('d-stats-real').classList.remove('skel-hidden');document.getElementById('d-grid-skel').style.display='none';document.getElementById('d-grid-real').classList.remove('skel-hidden');document.getElementById('d-activity-skel').style.display='none';document.getElementById('d-activity-real').classList.remove('skel-hidden');}
+function renderDashboard(){var d=state.data;if(!d)return;showDashboardReal();
 document.getElementById('d-balance').textContent=(d.balance||'0')+' MON';
 document.getElementById('d-trades').textContent=d.tradeCount||0;
 document.getElementById('d-posts').textContent=d.postCount||0;
@@ -610,6 +638,7 @@ var NETWORK_POOLS=[
 {token:'$MONSHI',tokenAddr:'0xB744F5CDb792d8187640214C4A1c9aCE29af7777',status:'pending',agents:[0],amounts:[8],total:8,action:'BUY',confidence:65,method:'TBD',txHash:null,moltbookPost:false,time:'Waiting for 2nd agent'}
 ];
 
+var networkChatRendered=false;
 function renderNetwork(){
 var d=state.data;
 // Update hero stats from real data
@@ -628,7 +657,8 @@ else aH+='<div class="agent-trust"><span class="trust-label" style="color:var(--
 aH+='</div>';});
 document.getElementById('n-agents-grid').innerHTML=aH;
 
-// Chat
+// Chat (render once only — prevents scroll reset on auto-refresh)
+if(!networkChatRendered){
 var cH='';NETWORK_CHAT.forEach(function(m){
 var a=NETWORK_AGENTS[m.from];var isRight=m.from===0;var cls=isRight?'chat-msg chat-msg-right':'chat-msg chat-msg-left';
 var avatarBg=isRight?'background:rgba(0,255,0,0.2);color:var(--green)':'background:rgba(255,102,0,0.2);color:var(--orange)';
@@ -637,6 +667,7 @@ if(m.proposal)cH+='<div class="chat-msg-proposal"><div class="chat-msg-proposal-
 cH+='</div><div class="chat-msg-time">'+esc(m.time)+'</div></div></div>';});
 document.getElementById('n-chat').innerHTML=cH;
 var chatEl=document.getElementById('n-chat');chatEl.scrollTop=chatEl.scrollHeight;
+networkChatRendered=true;}
 
 // Pools
 var pH='';NETWORK_POOLS.forEach(function(p){
