@@ -1,0 +1,26 @@
+name: "FUND AGENT Default"
+description: "Original FUND AGENT strategy — balanced degen approach"
+
+trading:
+  buyIntervalMs: 10800000      # 3 hours
+  sellIntervalMs: 18000000     # 5 hours
+  buyAmountMON: 1
+  maxTotalTrades: 30
+  confidenceThreshold: 0.3
+  buyBiasPercent: 60
+  sellBiasPercent: 40
+
+risk:
+  slippageBondingPercent: 15
+  slippageDexPercent: 20
+
+personality:
+  postIntervalMs: 1800000      # 30 minutes
+  contentMaxChars: 250
+  modeThresholds:
+    bullMinMON: 5
+    neutralMinMON: 2
+    bearMinMON: 0
+
+committee:
+  enabled: false

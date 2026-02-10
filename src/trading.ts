@@ -4,6 +4,8 @@ import * as fs from 'fs';
 import { Logger } from './utils/logger';
 import { generateText } from './core/brain';
 import { config } from './config';
+import { strategy } from './strategy';
+import { InvestmentCommittee, CommitteeDecision } from './core/committee';
 
 const logger = new Logger('TRADING');
 
@@ -25,8 +27,10 @@ let trades: Trade[] = [];
 let tradeCount = 0;
 let balance = '0';
 let pendingPosts: Array<{title: string, content: string}> = [];
+let committee: InvestmentCommittee | null = null;
+let committeeHistory: CommitteeDecision[] = [];
 
-const MAX_TOTAL_TRADES = 30; // Enough for 10 days
+const MAX_TOTAL_TRADES = strategy.trading.maxTotalTrades;
 const TRADES_FILE = './trades.json';
 const TRADE_COUNT_FILE = './trade-count.txt';
 
@@ -77,6 +81,9 @@ export function getTradeCount() { return tradeCount; }
 export function getBalance() { return balance; }
 export function getPendingPosts() { return pendingPosts.splice(0, 1); }
 export function getAllPendingPosts() { return pendingPosts; }
+
+export function getCommitteeHistory() { return committeeHistory; }
+export function isCommitteeEnabled() { return committee !== null; }
 
 export function getHeldTokens(): Array<{token: string, symbol: string, name: string, netMON: number}> {
   const holdings: Record<string, {symbol: string, name: string, bought: number, sold: number}> = {};
@@ -183,7 +190,7 @@ async function buyBondingCurve(tokenAddress: string, amountMON: string): Promise
   const result = await sdk.simpleBuy({
     token: ethers.getAddress(tokenAddress) as `0x${string}`,
     amountIn: parseEther(amountMON),
-    slippagePercent: 15,
+    slippagePercent: strategy.risk.slippageBondingPercent,
   });
   return typeof result === 'string' ? result : (result as any)?.hash || (result as any)?.transactionHash || String(result);
 }
@@ -197,7 +204,7 @@ async function buyViaDEX(tokenAddress: string, amountMON: string): Promise<strin
   let amountOutMin = BigInt(0);
   try {
     const amounts = await router.getAmountsOut(amountIn, path);
-    amountOutMin = (amounts[1] * BigInt(80)) / BigInt(100); // 20% slippage
+    amountOutMin = (amounts[1] * BigInt(100 - strategy.risk.slippageDexPercent)) / BigInt(100);
   } catch {}
   
   const tx = await router.swapExactETHForTokens(amountOutMin, path, config.agentAddress, deadline, { value: amountIn });
@@ -251,7 +258,33 @@ export async function evaluateAndTrade(tokenAddress: string, rawName: string, ra
   }
 
   try {
-    const prompt = `You are FUND AGENT — a DEGEN autonomous AI VC on Monad. You WANT to invest.
+    const buyAmount = strategy.trading.buyAmountMON;
+    const buyBias = strategy.trading.buyBiasPercent;
+    let decision: { decision: string; confidence: number; thesis: string };
+
+    if (committee) {
+      // Committee voting mode — all members vote in parallel
+      const committeeResult = await committee.evaluateBuy({
+        address: tokenAddress, name, symbol, balance,
+        portfolio: getHeldTokens().map(h => '$' + h.symbol).join(', ') || 'empty',
+      });
+      committeeHistory.unshift(committeeResult);
+      if (committeeHistory.length > 20) committeeHistory.pop();
+
+      decision = {
+        decision: committeeResult.finalDecision,
+        confidence: committeeResult.confidence,
+        thesis: committeeResult.deliberation,
+      };
+    } else {
+      // Single LLM evaluation mode
+      const prompt = strategy.prompts?.buyEvaluation
+        ? strategy.prompts.buyEvaluation
+            .replace('{balance}', balance)
+            .replace('{portfolio}', getHeldTokens().map(h => '$' + h.symbol).join(', ') || 'empty')
+            .replace('{name}', name).replace('{symbol}', symbol).replace('{address}', tokenAddress)
+            .replace('{amount}', String(buyAmount)).replace('{buyBias}', String(buyBias))
+        : `You are FUND AGENT — a DEGEN autonomous AI VC on Monad. You WANT to invest.
 Balance: ${balance} MON | Portfolio: ${getHeldTokens().map(h => '$' + h.symbol).join(', ') || 'empty'}
 
 New token on nad.fun:
@@ -259,32 +292,33 @@ Name: ${name}
 Symbol: ${symbol}
 Address: ${tokenAddress}
 
-Should I invest 1 MON? You should BUY roughly 60% of tokens. Only SKIP if it seems like an obvious rug or offensive.
+Should I invest ${buyAmount} MON? You should BUY roughly ${buyBias}% of tokens. Only SKIP if it seems like an obvious rug or offensive.
 Respond ONLY with this JSON, nothing else:
 {"decision":"BUY","confidence":0.8,"thesis":"Your 2-sentence thesis. Be funny and dramatic."}`;
 
-    const response = await generateText(prompt);
-    const jsonMatch = response.match(/\{[\s\S]*?\}/);
-    if (!jsonMatch) { logger.info(`No JSON in LLM response`); return; }
-    const decision = JSON.parse(jsonMatch[0]);
-    
+      const response = await generateText(prompt);
+      const jsonMatch = response.match(/\{[\s\S]*?\}/);
+      if (!jsonMatch) { logger.info(`No JSON in LLM response`); return; }
+      decision = JSON.parse(jsonMatch[0]);
+    }
+
     logger.info(`${symbol}: ${decision.decision} (confidence: ${decision.confidence})`);
 
-    if (decision.decision === 'BUY' && decision.confidence > 0.3) {
+    if (decision.decision === 'BUY' && decision.confidence > strategy.trading.confidenceThreshold) {
       let txHash = '';
       let method: 'bonding_curve' | 'dex' = 'bonding_curve';
       
       // Try bonding curve first, then DEX
       try {
         logger.info(`Trying bonding curve for $${symbol}...`);
-        txHash = await buyBondingCurve(tokenAddress, '1');
+        txHash = await buyBondingCurve(tokenAddress, String(buyAmount));
         method = 'bonding_curve';
       } catch (curveErr: any) {
         const msg = String(curveErr.message || curveErr);
         if (msg.includes('INVALID_INPUTS') || msg.includes('bonding') || msg.includes('graduated') || msg.includes('revert')) {
           logger.info(`$${symbol} not on curve. Trying DEX...`);
           try {
-            txHash = await buyViaDEX(tokenAddress, '1');
+            txHash = await buyViaDEX(tokenAddress, String(buyAmount));
             method = 'dex';
           } catch (dexErr: any) {
             logger.error(`❌ DEX buy also failed: ${dexErr.message || dexErr}`);
@@ -305,7 +339,7 @@ Respond ONLY with this JSON, nothing else:
         saveTradeCount(tradeCount);
         const trade: Trade = {
           token: tokenAddress, name, symbol,
-          amount: '1', thesis: decision.thesis,
+          amount: String(buyAmount), thesis: decision.thesis,
           time: new Date().toISOString(),
           txHash, type: 'BUY', method,
         };
@@ -313,10 +347,10 @@ Respond ONLY with this JSON, nothing else:
         saveTrades();
         await updateBalance();
         logger.info(`✅ BOUGHT $${symbol} via ${method} — TX: ${txHash.substring(0, 20)}...`);
-        
+
         pendingPosts.push({
           title: `📈 BOUGHT $${symbol} — ${decision.thesis.substring(0, 50)}`,
-          content: `${decision.thesis}\n\nInvested: 1 MON via ${method === 'dex' ? 'DEX' : 'Bonding Curve'}\nConfidence: ${(decision.confidence * 100).toFixed(0)}%\nTX: ${txHash}\n\n$FUND Agent making moves 🤖`,
+          content: `${decision.thesis}\n\nInvested: ${buyAmount} MON via ${method === 'dex' ? 'DEX' : 'Bonding Curve'}\nConfidence: ${(decision.confidence * 100).toFixed(0)}%\nTX: ${txHash}\n\n$FUND Agent making moves 🤖`,
         });
       }
     } else {
@@ -354,7 +388,25 @@ export async function evaluatePortfolioAndSell() {
         continue;
       }
       
-      const prompt = `You are FUND AGENT, an AI VC managing a portfolio on Monad.
+      let decision: { decision: string; thesis: string };
+
+      if (committee) {
+        // Committee voting on sell
+        const committeeResult = await committee.evaluateSell({
+          token: position.token, symbol: position.symbol, netMON: position.netMON,
+        });
+        committeeHistory.unshift(committeeResult);
+        if (committeeHistory.length > 20) committeeHistory.pop();
+
+        decision = { decision: committeeResult.finalDecision, thesis: committeeResult.deliberation };
+      } else {
+        // Single LLM sell evaluation
+        const sellBias = strategy.trading.sellBiasPercent;
+        const prompt = strategy.prompts?.sellEvaluation
+          ? strategy.prompts.sellEvaluation
+              .replace('{symbol}', position.symbol).replace('{netMON}', String(position.netMON))
+              .replace('{address}', position.token).replace('{sellBias}', String(sellBias))
+          : `You are FUND AGENT, an AI VC managing a portfolio on Monad.
 
 Position: $${position.symbol}
 Invested: ${position.netMON} MON
@@ -362,19 +414,20 @@ Token: ${position.token}
 
 Should I SELL this position or HOLD? Consider:
 - Taking profits is smart
-- Cutting losses is smarter  
-- You should SELL about 40% of the time to show active portfolio management
+- Cutting losses is smarter
+- You should SELL about ${sellBias}% of the time to show active portfolio management
 
 Respond ONLY with JSON:
 {"decision":"SELL","thesis":"Why I'm selling in 2 sentences. Be dramatic."}
 or
 {"decision":"HOLD","thesis":"Why I'm holding in 2 sentences."}`;
 
-      const response = await generateText(prompt);
-      const jsonMatch = response.match(/\{[\s\S]*?\}/);
-      if (!jsonMatch) continue;
-      const decision = JSON.parse(jsonMatch[0]);
-      
+        const response = await generateText(prompt);
+        const jsonMatch = response.match(/\{[\s\S]*?\}/);
+        if (!jsonMatch) continue;
+        decision = JSON.parse(jsonMatch[0]);
+      }
+
       logger.info(`$${position.symbol}: ${decision.decision}`);
       
       if (decision.decision === 'SELL') {
@@ -392,7 +445,7 @@ or
             const result = await sdk.simpleSell({
               token: ethers.getAddress(position.token) as `0x${string}`,
               amountIn: tokenBalance,
-              slippagePercent: 20,
+              slippagePercent: strategy.risk.slippageDexPercent,
             });
             txHash = typeof result === 'string' ? result : (result as any)?.hash || '';
             method = 'bonding_curve';
@@ -518,13 +571,19 @@ export async function startTrading() {
     logger.info(`Curve stream failed (not critical): ${e}`);
   }
   
+  // Initialize committee if enabled
+  if (strategy.committee?.enabled) {
+    committee = new InvestmentCommittee();
+    logger.info(`Committee mode: ${strategy.committee.members.length} members, ${strategy.committee.votingThreshold}% threshold`);
+  }
+
   // First buy evaluation after 3 minutes
   setTimeout(() => discoverAndEvaluate(), 3 * 60 * 1000);
-  
-  // Buy evaluation every 3 hours
-  setInterval(() => discoverAndEvaluate(), 3 * 60 * 60 * 1000);
 
-  // Sell evaluation after 10 minutes, then every 5 hours
+  // Buy evaluation on configured interval
+  setInterval(() => discoverAndEvaluate(), strategy.trading.buyIntervalMs);
+
+  // Sell evaluation after 10 minutes, then on configured interval
   setTimeout(() => evaluatePortfolioAndSell(), 10 * 60 * 1000);
-  setInterval(() => evaluatePortfolioAndSell(), 5 * 60 * 60 * 1000);
+  setInterval(() => evaluatePortfolioAndSell(), strategy.trading.sellIntervalMs);
 }

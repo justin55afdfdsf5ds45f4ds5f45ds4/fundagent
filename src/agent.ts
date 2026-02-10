@@ -3,7 +3,8 @@ import { MoltbookClient } from './social/moltbook';
 import { startServer } from './server';
 import { config } from './config';
 import { Logger } from './utils/logger';
-import { startTrading, getTrades, getTradeCount, getBalance, getPendingPosts, getHeldTokens } from './trading';
+import { startTrading, getTrades, getTradeCount, getBalance, getPendingPosts, getHeldTokens, getCommitteeHistory, isCommitteeEnabled } from './trading';
+import { strategy } from './strategy';
 import * as fs from 'fs';
 
 const logger = new Logger('AGENT');
@@ -54,16 +55,17 @@ class FundAgent {
     const totalInvested = held.reduce((sum, h) => sum + h.netMON, 0);
     const tradeCount = getTradeCount();
     
+    const thresholds = strategy.personality.modeThresholds;
     if (tradeCount === 0) {
       this.mode = 'NEUTRAL';
-    } else if (totalInvested > 5) {
-      this.mode = 'BULL'; // Heavily invested
-    } else if (totalInvested > 2) {
+    } else if (totalInvested > thresholds.bullMinMON) {
+      this.mode = 'BULL';
+    } else if (totalInvested > thresholds.neutralMinMON) {
       this.mode = 'NEUTRAL';
-    } else if (totalInvested > 0) {
-      this.mode = 'BEAR'; // Mostly sold
+    } else if (totalInvested > thresholds.bearMinMON) {
+      this.mode = 'BEAR';
     } else {
-      this.mode = 'CRISIS'; // Everything sold
+      this.mode = 'CRISIS';
     }
   }
 
@@ -78,6 +80,9 @@ class FundAgent {
       posts: allPosts,
       wallet: config.agentAddress,
       lastUpdated: new Date().toISOString(),
+      strategy: { name: strategy.name, description: strategy.description },
+      committeeEnabled: isCommitteeEnabled(),
+      committeeHistory: isCommitteeEnabled() ? getCommitteeHistory().slice(0, 10) : [],
     };
   }
 
@@ -118,6 +123,7 @@ class FundAgent {
 
   async start() {
     logger.info('🤖 FUND AGENT starting...');
+    logger.info(`Strategy: ${strategy.name}`);
     logger.info(`Wallet: ${config.agentAddress}`);
 
     // Start API server
@@ -134,14 +140,14 @@ class FundAgent {
     // Set initial mode based on portfolio
     this.updateMode();
 
-    // Post every 30 minutes
+    // Post on configured interval
     setInterval(async () => {
       try {
         await this.generateAndPost();
       } catch (error) {
         logger.error('Post cycle failed', error);
       }
-    }, 30 * 60 * 1000);
+    }, strategy.personality.postIntervalMs);
 
     // Save state every 30 seconds + sync to cloud every 60 seconds
     setInterval(() => {
@@ -342,20 +348,7 @@ Generate a brutal, funny 2-3 sentence evaluation. Reference fake on-chain data. 
   }
 
   async getStatus() {
-    const balance = getBalance();
-    const trades = getTrades();
-    
-    return {
-      status: 'running',
-      mode: this.mode,
-      postCount: this.postCount,
-      tradeCount: getTradeCount(),
-      balance,
-      trades: trades,
-      posts: allPosts,
-      wallet: config.agentAddress,
-      lastUpdated: new Date().toISOString(),
-    };
+    return this.getState();
   }
 }
 

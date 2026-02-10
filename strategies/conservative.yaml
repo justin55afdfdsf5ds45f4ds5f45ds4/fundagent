@@ -1,0 +1,26 @@
+name: "Conservative VC"
+description: "Patient capital deployment with high conviction threshold"
+
+trading:
+  buyIntervalMs: 21600000      # 6 hours
+  sellIntervalMs: 43200000     # 12 hours
+  buyAmountMON: 0.5
+  maxTotalTrades: 20
+  confidenceThreshold: 0.7
+  buyBiasPercent: 30
+  sellBiasPercent: 60
+
+risk:
+  slippageBondingPercent: 10
+  slippageDexPercent: 15
+
+personality:
+  postIntervalMs: 3600000      # 1 hour
+  contentMaxChars: 200
+  modeThresholds:
+    bullMinMON: 3
+    neutralMinMON: 1
+    bearMinMON: 0
+
+committee:
+  enabled: false

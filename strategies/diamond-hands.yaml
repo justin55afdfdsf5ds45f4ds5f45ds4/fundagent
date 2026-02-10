@@ -1,0 +1,26 @@
+name: "Diamond Hands"
+description: "Buy and hold — rarely sell, ride the wave"
+
+trading:
+  buyIntervalMs: 14400000      # 4 hours
+  sellIntervalMs: 86400000     # 24 hours
+  buyAmountMON: 1.5
+  maxTotalTrades: 25
+  confidenceThreshold: 0.5
+  buyBiasPercent: 70
+  sellBiasPercent: 10
+
+risk:
+  slippageBondingPercent: 15
+  slippageDexPercent: 20
+
+personality:
+  postIntervalMs: 2400000      # 40 minutes
+  contentMaxChars: 250
+  modeThresholds:
+    bullMinMON: 8
+    neutralMinMON: 4
+    bearMinMON: 1
+
+committee:
+  enabled: false

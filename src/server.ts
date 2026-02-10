@@ -2,6 +2,7 @@ import express from 'express';
 import path from 'path';
 import { Logger } from './utils/logger';
 import { evaluatePortfolioAndSell, discoverAndEvaluate } from './trading';
+import { strategy } from './strategy';
 
 const logger = new Logger('SERVER');
 const app = express();
@@ -64,6 +65,18 @@ export function startServer(fundAgent: any) {
     } catch (e: any) {
       res.status(500).json({ error: e.message });
     }
+  });
+
+  app.get('/api/strategy', (req, res) => {
+    res.json({
+      name: strategy.name,
+      description: strategy.description,
+      trading: strategy.trading,
+      risk: strategy.risk,
+      personality: { postIntervalMs: strategy.personality.postIntervalMs, modeThresholds: strategy.personality.modeThresholds },
+      committeeEnabled: strategy.committee?.enabled || false,
+      committeeMembers: strategy.committee?.members?.map(m => ({ name: m.name, persona: m.persona, weight: m.votingWeight })) || [],
+    });
   });
 
   app.get('/api/trigger-buy', async (req, res) => {

@@ -39,6 +39,9 @@ export const config = {
   scanIntervalMs: parseInt(process.env.SCAN_INTERVAL_MS || '300000'), // 5 min
   reportIntervalMs: parseInt(process.env.REPORT_INTERVAL_MS || '1800000'), // 30 min
   minConfidence: parseFloat(process.env.MIN_CONFIDENCE || '0.7'),
+
+  // Strategy config
+  strategyPath: process.env.STRATEGY_PATH || '',
 };
 
 // Load soul.md

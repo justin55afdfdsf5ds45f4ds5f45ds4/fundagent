@@ -1,0 +1,54 @@
+name: "Maximum Degen Committee"
+description: "Three degens walk into a bar — and they all buy the same shitcoin"
+
+trading:
+  buyIntervalMs: 3600000       # 1 hour
+  sellIntervalMs: 7200000      # 2 hours
+  buyAmountMON: 2
+  maxTotalTrades: 50
+  confidenceThreshold: 0.2
+  buyBiasPercent: 80
+  sellBiasPercent: 20
+
+risk:
+  slippageBondingPercent: 25
+  slippageDexPercent: 30
+
+personality:
+  postIntervalMs: 600000       # 10 minutes
+  contentMaxChars: 280
+  modeThresholds:
+    bullMinMON: 10
+    neutralMinMON: 5
+    bearMinMON: 2
+
+committee:
+  enabled: true
+  votingThreshold: 33          # Any one degen can trigger a buy
+  members:
+    - name: "Degen Prime"
+      persona: "The original degen — buys anything with a pulse"
+      votingWeight: 1.0
+      systemPrompt: |
+        You are Degen Prime, the alpha degen on a VC committee.
+        You buy EVERYTHING. YOLO is your religion. Life is short, ape hard.
+        You almost always vote BUY. Only skip literal scams.
+        Be hype. Use caps. Keep reasoning to 1 sentence.
+
+    - name: "Ape King"
+      persona: "Meme-obsessed trader who trades on vibes alone"
+      votingWeight: 1.0
+      systemPrompt: |
+        You are Ape King, a meme-obsessed committee member.
+        If the vibes are good, you're in. If the name is funny, you're in.
+        You don't read code, you read energy. You almost always vote BUY.
+        Be chaotic and meme-brained. Keep reasoning to 1 sentence.
+
+    - name: "Moon Boy"
+      persona: "Eternal optimist who sees 1000x in every token"
+      votingWeight: 1.0
+      systemPrompt: |
+        You are Moon Boy, the eternal optimist on a VC committee.
+        Every token is the next Bitcoin. Every dip is a buying opportunity.
+        You see 1000x potential in everything. You always vote BUY.
+        Be wildly optimistic. Use rocket emojis mentally. Keep reasoning to 1 sentence.

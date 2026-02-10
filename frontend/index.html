@@ -154,6 +154,58 @@
             color: #666;
             cursor: not-allowed;
         }
+        .strategy-bar {
+            background: #111;
+            border: 1px solid #333;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .strategy-name { color: #00ff00; font-weight: bold; }
+        .strategy-desc { color: #888; font-size: 0.85rem; }
+        .committee-panel {
+            background: #111;
+            border: 2px solid #ff6600;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .committee-panel h2 {
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            color: #ff6600;
+        }
+        .vote-card {
+            background: #0a0a0a;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+        }
+        .vote-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .vote-token { color: #00ff00; font-size: 1.1rem; font-weight: bold; }
+        .vote-result { padding: 3px 10px; border-radius: 12px; font-size: 0.85rem; font-weight: bold; }
+        .vote-result-BUY, .vote-result-SELL { background: #00ff00; color: #000; }
+        .vote-result-SKIP, .vote-result-HOLD { background: #333; color: #888; }
+        .vote-members { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+        .vote-member {
+            background: #111;
+            border: 1px solid #333;
+            padding: 8px 12px;
+            border-radius: 6px;
+            flex: 1;
+            min-width: 180px;
+        }
+        .vote-member-name { font-weight: bold; font-size: 0.9rem; }
+        .vote-member-decision { font-size: 0.85rem; margin-top: 3px; }
+        .vote-member-reasoning { color: #888; font-size: 0.8rem; margin-top: 3px; }
         .footer {
             text-align: center;
             margin-top: 50px;
@@ -193,6 +245,16 @@
                     <span class="mode-indicator mode-NEUTRAL" id="mode">NEUTRAL</span>
                 </div>
             </div>
+        </div>
+
+        <div class="strategy-bar" id="strategy-bar" style="display:none">
+            <div><span class="strategy-name" id="strategy-name"></span> <span class="strategy-desc" id="strategy-desc"></span></div>
+            <div id="committee-badge" style="display:none;background:#ff6600;color:#000;padding:3px 10px;border-radius:12px;font-size:0.8rem;font-weight:bold">COMMITTEE MODE</div>
+        </div>
+
+        <div class="committee-panel" id="committee-panel" style="display:none">
+            <h2>🗳️ Investment Committee Votes</h2>
+            <div id="committee-votes"></div>
         </div>
 
         <div class="portfolio">
@@ -345,6 +407,47 @@
                     holdingsBody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#888">Scanning for opportunities...</td></tr>';
                 }
                 
+                // Strategy info
+                if (data.strategy) {
+                    document.getElementById('strategy-bar').style.display = 'flex';
+                    document.getElementById('strategy-name').textContent = data.strategy.name || '';
+                    document.getElementById('strategy-desc').textContent = data.strategy.description ? '— ' + data.strategy.description : '';
+                }
+                if (data.committeeEnabled) {
+                    document.getElementById('committee-badge').style.display = 'inline-block';
+                }
+
+                // Committee votes
+                if (data.committeeEnabled && data.committeeHistory && data.committeeHistory.length > 0) {
+                    document.getElementById('committee-panel').style.display = 'block';
+                    var votesHtml = '';
+                    data.committeeHistory.slice(0, 5).forEach(function(cd) {
+                        var resultClass = 'vote-result-' + cd.finalDecision;
+                        var actionLabel = cd.action === 'BUY_EVAL' ? 'BUY VOTE' : 'SELL VOTE';
+                        votesHtml += '<div class="vote-card">' +
+                            '<div class="vote-card-header">' +
+                                '<span class="vote-token">$' + esc(cd.symbol) + ' — ' + actionLabel + '</span>' +
+                                '<span class="vote-result ' + resultClass + '">' + esc(cd.finalDecision) + '</span>' +
+                            '</div>' +
+                            '<div style="color:#888;font-size:0.8rem">' + new Date(cd.time).toLocaleString() +
+                                ' | Tally: ' + Object.keys(cd.voteTally || {}).map(function(k) { return k + ': ' + cd.voteTally[k]; }).join(', ') +
+                            '</div>' +
+                            '<div class="vote-members">';
+                        (cd.votes || []).forEach(function(v) {
+                            var vColor = v.decision === 'BUY' || v.decision === 'SELL' ? '#00ff00' : '#666';
+                            votesHtml += '<div class="vote-member">' +
+                                '<div class="vote-member-name">' + esc(v.member) + '</div>' +
+                                '<div class="vote-member-decision" style="color:' + vColor + '">' + esc(v.decision) + ' (' + Math.round(v.confidence * 100) + '%)</div>' +
+                                '<div class="vote-member-reasoning">' + esc((v.reasoning || '').substring(0, 100)) + '</div>' +
+                            '</div>';
+                        });
+                        votesHtml += '</div></div>';
+                    });
+                    document.getElementById('committee-votes').innerHTML = votesHtml;
+                } else {
+                    document.getElementById('committee-panel').style.display = 'none';
+                }
+
                 // Render activity
                 renderActivity(data);
                 

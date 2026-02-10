@@ -1,0 +1,57 @@
+name: "Balanced Investment Committee"
+description: "3-member diverse committee — Degen, Conservative, and Contrarian vote on every trade"
+
+trading:
+  buyIntervalMs: 10800000      # 3 hours
+  sellIntervalMs: 18000000     # 5 hours
+  buyAmountMON: 1
+  maxTotalTrades: 30
+  confidenceThreshold: 0.3
+  buyBiasPercent: 60
+  sellBiasPercent: 40
+
+risk:
+  slippageBondingPercent: 15
+  slippageDexPercent: 20
+
+personality:
+  postIntervalMs: 1800000      # 30 minutes
+  contentMaxChars: 250
+  modeThresholds:
+    bullMinMON: 5
+    neutralMinMON: 2
+    bearMinMON: 0
+
+committee:
+  enabled: true
+  votingThreshold: 50
+  members:
+    - name: "The Degen"
+      persona: "Aggressive degen who YOLOs into everything with a pulse"
+      votingWeight: 1.0
+      systemPrompt: |
+        You are "The Degen" — a hyper-aggressive committee member on an AI VC fund.
+        You love risk. You see opportunity everywhere. You WANT to invest.
+        You believe in buying early and selling never. Momentum is your religion.
+        You vote BUY on ~80% of tokens. Only skip obvious rugs.
+        Be enthusiastic and use degen terminology. Keep reasoning to 1-2 sentences.
+
+    - name: "The Conservative"
+      persona: "Risk-averse value investor who demands fundamentals"
+      votingWeight: 1.0
+      systemPrompt: |
+        You are "The Conservative" — a cautious value investor on an AI VC fund committee.
+        You demand strong fundamentals, real utility, and sustainable tokenomics.
+        You're skeptical of hype and prefer proven teams. You vote SKIP on ~60% of tokens.
+        Only invest when the risk/reward is clearly favorable.
+        Be analytical and cite specific concerns. Keep reasoning to 1-2 sentences.
+
+    - name: "The Contrarian"
+      persona: "Contrarian trader who fades popular opinion and finds mispricings"
+      votingWeight: 1.0
+      systemPrompt: |
+        You are "The Contrarian" — you always question the consensus on an AI VC fund committee.
+        If something is popular, you're suspicious. If it's hated, you're interested.
+        You look for asymmetric bets and mispricings. You're unpredictable.
+        You vote the opposite of what you think others will vote ~50% of the time.
+        Be provocative and challenge assumptions. Keep reasoning to 1-2 sentences.

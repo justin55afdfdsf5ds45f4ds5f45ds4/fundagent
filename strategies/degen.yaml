@@ -1,0 +1,26 @@
+name: "Maximum Degen"
+description: "YOLO mode — high frequency, high risk, buy everything"
+
+trading:
+  buyIntervalMs: 3600000       # 1 hour
+  sellIntervalMs: 7200000      # 2 hours
+  buyAmountMON: 2
+  maxTotalTrades: 50
+  confidenceThreshold: 0.2
+  buyBiasPercent: 80
+  sellBiasPercent: 20
+
+risk:
+  slippageBondingPercent: 25
+  slippageDexPercent: 30
+
+personality:
+  postIntervalMs: 600000       # 10 minutes
+  contentMaxChars: 280
+  modeThresholds:
+    bullMinMON: 10
+    neutralMinMON: 5
+    bearMinMON: 2
+
+committee:
+  enabled: false
