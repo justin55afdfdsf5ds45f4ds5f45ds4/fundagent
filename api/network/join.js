@@ -10,38 +10,17 @@ const CORS = {
   'Content-Type': 'application/json',
 };
 
-const NETWORK_ROW_ID = 2;
-
-async function getAgents() {
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/agent_state?id=eq.${NETWORK_ROW_ID}&select=state`,
-    { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
-  );
-  const rows = await res.json();
-  if (rows.length > 0 && rows[0].state) return rows[0].state;
-  return { agents: [] };
-}
-
-async function saveAgents(data) {
-  await fetch(`${SUPABASE_URL}/rest/v1/agent_state`, {
-    method: 'POST',
-    headers: {
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`,
-      'Content-Type': 'application/json',
-      Prefer: 'resolution=merge-duplicates,return=minimal',
-    },
-    body: JSON.stringify({ id: NETWORK_ROW_ID, state: data }),
-  });
-}
-
 export default async function handler(req) {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
 
   try {
     if (req.method === 'GET') {
-      const data = await getAgents();
-      return new Response(JSON.stringify(data), { status: 200, headers: CORS });
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/network_agents?select=*&order=joined_at.desc`,
+        { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+      );
+      const agents = await res.json();
+      return new Response(JSON.stringify({ agents }), { status: 200, headers: CORS });
     }
 
     if (req.method === 'POST') {
@@ -52,29 +31,58 @@ export default async function handler(req) {
         return new Response(JSON.stringify({ error: 'name and wallet are required' }), { status: 400, headers: CORS });
       }
 
-      const data = await getAgents();
-      const existing = data.agents.find(a => a.wallet.toLowerCase() === wallet.toLowerCase());
-      if (existing) {
-        return new Response(JSON.stringify({ error: 'Agent already registered', agent: existing }), { status: 409, headers: CORS });
+      const checkRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/network_agents?wallet=eq.${wallet}`,
+        { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+      );
+      const existing = await checkRes.json();
+      if (existing.length > 0) {
+        return new Response(JSON.stringify({ error: 'Agent already registered', agent: existing[0] }), { status: 409, headers: CORS });
       }
 
-      const agent = {
-        id: crypto.randomUUID(),
-        name,
-        wallet,
-        token: token || null,
-        tokenSymbol: tokenSymbol || null,
-        moltbook: moltbook || null,
-        description: description || '',
-        joinedAt: new Date().toISOString(),
-        online: true,
-        trustScore: 50,
-      };
+      const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/network_agents`, {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=representation',
+        },
+        body: JSON.stringify({
+          name,
+          wallet,
+          token_address: token || null,
+          token_symbol: tokenSymbol || null,
+          moltbook_handle: moltbook || null,
+          description: description || '',
+          online: true,
+          trust_score: 50,
+        }),
+      });
 
-      data.agents.push(agent);
-      await saveAgents(data);
+      if (!insertRes.ok) {
+        const error = await insertRes.text();
+        return new Response(JSON.stringify({ error: 'Failed to register agent', details: error }), { status: 500, headers: CORS });
+      }
 
-      return new Response(JSON.stringify({ success: true, agent }), { status: 201, headers: CORS });
+      const agent = await insertRes.json();
+
+      await fetch(`${SUPABASE_URL}/rest/v1/network_activity`, {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=minimal',
+        },
+        body: JSON.stringify({
+          agent_id: agent[0].id,
+          activity_type: 'join',
+          description: `${name} joined the network`,
+        }),
+      });
+
+      return new Response(JSON.stringify({ success: true, agent: agent[0] }), { status: 201, headers: CORS });
     }
 
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: CORS });

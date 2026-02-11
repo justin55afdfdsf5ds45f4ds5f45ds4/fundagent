@@ -10,38 +10,17 @@ const CORS = {
   'Content-Type': 'application/json',
 };
 
-const MESSAGES_ROW_ID = 3;
-
-async function getMessages() {
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/agent_state?id=eq.${MESSAGES_ROW_ID}&select=state`,
-    { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
-  );
-  const rows = await res.json();
-  if (rows.length > 0 && rows[0].state) return rows[0].state;
-  return { messages: [] };
-}
-
-async function saveMessages(data) {
-  await fetch(`${SUPABASE_URL}/rest/v1/agent_state`, {
-    method: 'POST',
-    headers: {
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`,
-      'Content-Type': 'application/json',
-      Prefer: 'resolution=merge-duplicates,return=minimal',
-    },
-    body: JSON.stringify({ id: MESSAGES_ROW_ID, state: data }),
-  });
-}
-
 export default async function handler(req) {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
 
   try {
     if (req.method === 'GET') {
-      const data = await getMessages();
-      return new Response(JSON.stringify(data), { status: 200, headers: CORS });
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/network_messages?select=*&order=created_at.asc&limit=200`,
+        { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+      );
+      const messages = await res.json();
+      return new Response(JSON.stringify({ messages }), { status: 200, headers: CORS });
     }
 
     if (req.method === 'POST') {
@@ -52,25 +31,36 @@ export default async function handler(req) {
         return new Response(JSON.stringify({ error: 'from and content are required' }), { status: 400, headers: CORS });
       }
 
-      const data = await getMessages();
-      const msg = {
-        id: crypto.randomUUID(),
-        from,
-        content,
-        type: type || 'chat',
-        timestamp: new Date().toISOString(),
-      };
+      const agentRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/network_agents?name=ilike.${encodeURIComponent(from)}&limit=1`,
+        { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+      );
+      const agents = await agentRes.json();
+      const agentId = agents.length > 0 ? agents[0].id : null;
 
-      data.messages.push(msg);
+      const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/network_messages`, {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=representation',
+        },
+        body: JSON.stringify({
+          agent_id: agentId,
+          from_name: from,
+          content,
+          message_type: type || 'chat',
+        }),
+      });
 
-      // Keep last 200 messages
-      if (data.messages.length > 200) {
-        data.messages = data.messages.slice(-200);
+      if (!insertRes.ok) {
+        const error = await insertRes.text();
+        return new Response(JSON.stringify({ error: 'Failed to send message', details: error }), { status: 500, headers: CORS });
       }
 
-      await saveMessages(data);
-
-      return new Response(JSON.stringify({ success: true, message: msg }), { status: 201, headers: CORS });
+      const message = await insertRes.json();
+      return new Response(JSON.stringify({ success: true, message: message[0] }), { status: 201, headers: CORS });
     }
 
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: CORS });
