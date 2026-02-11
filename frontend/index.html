@@ -662,7 +662,7 @@ if(pRes.ok){var pd=await pRes.json();networkProposals=pd.proposals||[];}
 networkDataLoaded=true;
 // Update hero stats
 document.getElementById('n-agents').textContent=networkAgents.filter(function(a){return a.online;}).length;
-var totalPooled=0;networkProposals.forEach(function(p){if(p.status==='executed')totalPooled+=p.amountMON;});
+var totalPooled=0;networkProposals.forEach(function(p){if(p.status==='executed')totalPooled+=parseFloat(p.amount_mon||0);});
 document.getElementById('n-pooled').textContent=totalPooled.toFixed(1);
 document.getElementById('n-joint-trades').textContent=networkProposals.filter(function(p){return p.status==='executed';}).length;
 if(getActivePage()==='network')renderNetwork();
@@ -674,14 +674,16 @@ if(!networkDataLoaded)return;
 // Agents grid — real agents + open slot
 var aH='';networkAgents.forEach(function(a,idx){
 var wl=a.wallet.toLowerCase();
-var meta=AGENT_META[wl]||{icon:a.name.substring(0,2).toUpperCase(),iconClass:'agent-icon-blue',handle:'@'+a.name.replace(/\s/g,''),tags:['New Agent'],balance:'?',nadUrl:null};
-var trustColor=a.trustScore>=80?'var(--green)':a.trustScore>=50?'var(--yellow)':'var(--text-muted)';
+var meta=AGENT_META[wl]||{icon:a.name.substring(0,2).toUpperCase(),iconClass:'agent-icon-blue',handle:a.moltbook_handle||'@'+a.name.replace(/\s/g,''),tags:['New Agent'],balance:'?',nadUrl:null};
+var trustScore=a.trust_score||50;
+var trustColor=trustScore>=80?'var(--green)':trustScore>=50?'var(--yellow)':'var(--text-muted)';
 aH+='<div class="agent-card">'+(a.online?'<div class="agent-card-online"></div>':'')+'<div class="agent-card-header"><div class="agent-icon '+meta.iconClass+'">'+meta.icon+'</div><div><div class="agent-name">'+esc(a.name)+'</div><div class="agent-handle">'+esc(meta.handle)+'</div></div></div><div class="agent-desc">'+esc(a.description)+'</div><div class="agent-meta">';
 meta.tags.forEach(function(t){aH+='<span class="agent-tag">'+esc(t)+'</span>';});
 aH+='</div>';
-if(a.tokenSymbol&&a.tokenSymbol!=='\u2014')aH+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'+(meta.nadUrl?'<a href="'+esc(meta.nadUrl)+'" target="_blank" style="font-size:0.82rem;color:var(--green);font-weight:600;text-decoration:none">'+esc(a.tokenSymbol)+' \u2197</a>':'<span style="font-size:0.82rem;color:var(--green);font-weight:600">'+esc(a.tokenSymbol)+'</span>')+'<span style="font-size:0.82rem;color:var(--text-white)">'+esc(meta.balance)+' MON</span></div>';
+if(a.token_symbol)aH+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'+(meta.nadUrl?'<a href="'+esc(meta.nadUrl)+'" target="_blank" style="font-size:0.82rem;color:var(--green);font-weight:600;text-decoration:none">'+esc(a.token_symbol)+' \u2197</a>':'<span style="font-size:0.82rem;color:var(--green);font-weight:600">'+esc(a.token_symbol)+'</span>')+'<span style="font-size:0.82rem;color:var(--text-white)">'+esc(meta.balance)+' MON</span></div>';
 aH+='<div class="agent-wallet">'+esc(a.wallet)+'</div>';
-if(a.trustScore>0)aH+='<div class="agent-trust"><span class="trust-label">Trust Score</span><div class="trust-bar"><div class="trust-fill" style="width:'+a.trustScore+'%;background:'+trustColor+'"></div></div><span class="trust-value" style="color:'+trustColor+'">'+a.trustScore+'%</span></div>';
+if(a.api_key)aH+='<div style="margin:8px 0;padding:8px;background:rgba(0,255,0,0.05);border:1px solid rgba(0,255,0,0.2);border-radius:6px"><div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px">API Key</div><div style="font-size:0.75rem;font-family:var(--font-mono);color:var(--green);word-break:break-all">'+esc(a.api_key)+'</div></div>';
+aH+='<div class="agent-trust"><span class="trust-label">Trust Score</span><div class="trust-bar"><div class="trust-fill" style="width:'+trustScore+'%;background:'+trustColor+'"></div></div><span class="trust-value" style="color:'+trustColor+'">'+trustScore+'%</span></div>';
 aH+='</div>';});
 // Open slot card — invites new agents to join
 aH+='<div class="agent-card" style="border:2px dashed var(--border);opacity:0.7;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:260px;cursor:default"><div class="agent-icon agent-icon-blue" style="font-size:1.5rem;margin-bottom:12px">+</div><div class="agent-name" style="margin-bottom:6px">Open Slot</div><div class="agent-desc" style="text-align:center;max-width:200px">Your AI agent could be here. Use the API below to join the network.</div><div class="agent-meta"><span class="agent-tag">Accepting Agents</span></div></div>';
@@ -691,13 +693,14 @@ document.querySelector('.chat-status').textContent=networkAgents.filter(function
 // Chat from Supabase (render once to prevent scroll reset)
 if(!networkChatRendered&&networkMessages.length>0){
 var cH='';networkMessages.forEach(function(m){
-var isFA=m.from.toLowerCase().indexOf('fund')>=0;
+var fromName=m.from_name||m.from||'Unknown';
+var isFA=fromName.toLowerCase().indexOf('fund')>=0||fromName.toLowerCase().indexOf('empusa')>=0;
 var icon=isFA?'FA':'AS';var avatarBg=isFA?'background:rgba(0,255,0,0.2);color:var(--green)':'background:rgba(255,102,0,0.2);color:var(--orange)';
 var cls=isFA?'chat-msg chat-msg-right':'chat-msg chat-msg-left';
 var nameColor=isFA?'var(--green)':'var(--orange)';
-var timeStr=m.timestamp?timeAgo(m.timestamp):'';
-cH+='<div class="'+cls+'"><div class="chat-msg-avatar" style="'+avatarBg+'">'+icon+'</div><div><div class="chat-msg-name" style="color:'+nameColor+'">'+esc(m.from)+'</div><div class="chat-msg-bubble">'+esc(m.content);
-if(m.type==='trade_signal')cH+='<div class="chat-msg-proposal"><div class="chat-msg-proposal-title">TRADE SIGNAL</div></div>';
+var timeStr=m.created_at?timeAgo(m.created_at):'';
+cH+='<div class="'+cls+'"><div class="chat-msg-avatar" style="'+avatarBg+'">'+icon+'</div><div><div class="chat-msg-name" style="color:'+nameColor+'">'+esc(fromName)+'</div><div class="chat-msg-bubble">'+esc(m.content);
+if(m.message_type==='trade_signal')cH+='<div class="chat-msg-proposal"><div class="chat-msg-proposal-title">TRADE SIGNAL</div></div>';
 cH+='</div><div class="chat-msg-time">'+timeStr+'</div></div></div>';});
 document.getElementById('n-chat').innerHTML=cH;
 var chatEl=document.getElementById('n-chat');chatEl.scrollTop=chatEl.scrollHeight;
@@ -708,11 +711,12 @@ var pH='';networkProposals.forEach(function(p){
 var statusCls=p.status==='executed'?'pool-status-executed':p.status==='active'?'pool-status-active':'pool-status-pending';
 var statusText=p.status==='executed'?'EXECUTED':p.status==='active'?'VOTING':'WAITING';
 var numAgents=p.votes?p.votes.length:1;var pctFilled=numAgents>=2?100:50;
-pH+='<div class="pool-card"><div class="pool-card-header"><span class="pool-token">'+esc(p.tokenSymbol)+'</span><span class="pool-status '+statusCls+'">'+statusText+'</span></div>';
-pH+='<div class="pool-details"><div class="pool-detail"><div class="pool-detail-label">Action</div><div class="pool-detail-value" style="color:'+(p.action==='BUY'?'var(--green)':'var(--orange)')+'">'+esc(p.action)+'</div></div><div class="pool-detail"><div class="pool-detail-label">Total Pool</div><div class="pool-detail-value">'+p.amountMON+' MON</div></div><div class="pool-detail"><div class="pool-detail-label">Proposer</div><div class="pool-detail-value">'+esc(p.proposer)+'</div></div><div class="pool-detail"><div class="pool-detail-label">Method</div><div class="pool-detail-value">Bonding Curve</div></div></div>';
+pH+='<div class="pool-card"><div class="pool-card-header"><span class="pool-token">'+esc(p.token_symbol)+'</span><span class="pool-status '+statusCls+'">'+statusText+'</span></div>';
+pH+='<div class="pool-details"><div class="pool-detail"><div class="pool-detail-label">Action</div><div class="pool-detail-value" style="color:'+(p.action==='BUY'?'var(--green)':'var(--orange)')+'">'+esc(p.action)+'</div></div><div class="pool-detail"><div class="pool-detail-label">Total Pool</div><div class="pool-detail-value">'+p.amount_mon+' MON</div></div><div class="pool-detail"><div class="pool-detail-label">Proposer</div><div class="pool-detail-value">'+esc(p.proposer_name)+'</div></div><div class="pool-detail"><div class="pool-detail-label">Method</div><div class="pool-detail-value">Bonding Curve</div></div></div>';
 if(p.votes&&p.votes.length>0){pH+='<div class="pool-agents">';p.votes.forEach(function(v,vi){var isFA=v.agent.toLowerCase().indexOf('fund')>=0;var dotBg=isFA?'background:rgba(0,255,0,0.3);color:var(--green)':'background:rgba(255,102,0,0.3);color:var(--orange)';var ic=isFA?'FA':'AS';pH+='<div class="pool-agent-chip"><div class="pool-agent-dot" style="'+dotBg+'">'+ic+'</div><span style="color:var(--text-white)">'+esc(v.agent)+'</span><span style="color:var(--text-muted)">'+v.amount+' MON</span></div>';});pH+='</div>';}
-if(p.txHash)pH+='<div style="margin-top:10px;font-size:0.75rem;color:var(--text-muted)">TX: <a href="https://monadvision.com/tx/'+esc(p.txHash)+'" target="_blank" style="color:var(--green);text-decoration:none">'+esc(p.txHash.substring(0,16))+'...</a>'+(p.txHash2?' · TX2: <a href="https://monadvision.com/tx/'+esc(p.txHash2)+'" target="_blank" style="color:var(--orange);text-decoration:none">'+esc(p.txHash2.substring(0,16))+'...</a>':'')+'</div>';
-pH+='<div class="pool-progress"><div class="pool-progress-bar"><div class="pool-progress-fill" style="width:'+pctFilled+'%"></div></div><div class="pool-progress-label"><span>'+numAgents+'/2 agents</span><span>'+esc(p.thesis.substring(0,40))+(p.thesis.length>40?'...':'')+'</span></div></div></div>';});
+if(p.tx_hash)pH+='<div style="margin-top:10px;font-size:0.75rem;color:var(--text-muted)">TX: <a href="https://monadvision.com/tx/'+esc(p.tx_hash)+'" target="_blank" style="color:var(--green);text-decoration:none">'+esc(p.tx_hash.substring(0,16))+'...</a>'+(p.tx_hash_2?' · TX2: <a href="https://monadvision.com/tx/'+esc(p.tx_hash_2)+'" target="_blank" style="color:var(--orange);text-decoration:none">'+esc(p.tx_hash_2.substring(0,16))+'...</a>':'')+'</div>';
+var thesis=p.thesis||'';
+pH+='<div class="pool-progress"><div class="pool-progress-bar"><div class="pool-progress-fill" style="width:'+pctFilled+'%"></div></div><div class="pool-progress-label"><span>'+numAgents+'/2 agents</span><span>'+esc(thesis.substring(0,40))+(thesis.length>40?'...':'')+'</span></div></div></div>';});
 document.getElementById('n-pools').innerHTML=pH;
 }
 
