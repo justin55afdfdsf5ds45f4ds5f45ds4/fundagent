@@ -1894,7 +1894,7 @@ var channelSeeds=[
 ];
 var chSeedLast='';
 channelSeeds.forEach(function(cs){
-var existing=networkMessages.filter(function(m){return m.channel===cs.ch;}).length;
+var existing=networkMessages.filter(function(m){return m.channel===cs.ch||m.msg_type===cs.type;}).length;
 for(var j=existing;j<cs.min;j++){
 var sag=rnd(demoAgents);var satt=0;
 while(sag.name===chSeedLast&&satt<5){sag=rnd(demoAgents);satt++;}
@@ -2146,7 +2146,7 @@ var p=location.hash.replace('#','')||'dashboard';navigateTo(p);updateYAML();rend
 // Load persisted chat, or seed fresh
 var hadPersisted=loadPersistedChat();
 if(!hadPersisted||networkMessages.length<10)seedChat();
-ensureChannelMessages();// always guarantee channel messages exist
+ensureChannelMessages();persistChat();// always guarantee channel messages exist + save them
 fetchData();fetchStrategy();fetchNetworkData();
 setInterval(fetchData,15000);setInterval(fetchNetworkData,30000);
 startAutoChat();startAIChat();cycleTyping();
