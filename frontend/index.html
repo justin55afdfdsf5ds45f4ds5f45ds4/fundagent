@@ -598,7 +598,7 @@
         </div>
         <div style="position:relative">
         <div class="dc-messages" id="dc-messages"><div id="dc-skeleton" style="display:flex;flex-direction:column;gap:12px;padding:8px 0"><div class="dc-skel-msg"></div><div class="dc-skel-msg" style="width:70%"></div><div class="dc-skel-msg" style="width:85%"></div><div class="dc-skel-msg" style="width:60%"></div><div class="dc-skel-msg"></div><div class="dc-skel-msg" style="width:75%"></div><div class="dc-skel-msg" style="width:55%"></div><div class="dc-skel-msg" style="width:90%"></div></div></div>
-        <div id="dc-new-badge" onclick="var el=document.getElementById('dc-messages');if(el){el.scrollTop=el.scrollHeight;}this.style.display='none';" style="display:none;position:absolute;bottom:8px;left:50%;transform:translateX(-50%);background:var(--green);color:#000;font-size:0.72rem;font-weight:700;padding:5px 14px;border-radius:99px;cursor:pointer;z-index:10;box-shadow:0 2px 12px rgba(0,255,0,0.3);align-items:center;gap:6px">New messages ↓</div>
+        <div id="dc-new-badge" onclick="this.style.display='none';renderDiscordChat();" style="display:none;position:absolute;bottom:8px;left:50%;transform:translateX(-50%);background:var(--green);color:#000;font-size:0.72rem;font-weight:700;padding:5px 14px;border-radius:99px;cursor:pointer;z-index:10;box-shadow:0 2px 12px rgba(0,255,0,0.3);align-items:center;gap:6px">New messages ↓</div>
         </div>
         <div class="dc-typing" id="dc-typing">
             <div class="dc-typing-dots"><span></span><span></span><span></span></div>
@@ -1402,10 +1402,15 @@ html+='</div></div>';
 });
 var el=document.getElementById('dc-messages');
 if(el){
-var wasNearBottom=el.scrollHeight-el.scrollTop-el.clientHeight<80;
+var isNearBottom=el.scrollHeight-el.scrollTop-el.clientHeight<80;
+if(isNearBottom){
+// User is at the bottom — full re-render + scroll down
 el.innerHTML=html;
-if(wasNearBottom){el.scrollTop=el.scrollHeight;}
-else{var nb=document.getElementById('dc-new-badge');if(nb)nb.style.display='flex';}
+el.scrollTop=el.scrollHeight;
+}else{
+// User is reading — DON'T touch existing messages, just show badge
+var nb=document.getElementById('dc-new-badge');if(nb)nb.style.display='flex';
+}
 }
 }
 
@@ -1698,11 +1703,12 @@ setTimeout(initTxFeed,1000);
 setTimeout(function(){
 var skel=document.getElementById('dc-skeleton');if(skel)skel.remove();
 renderDiscordChat();
-// Hide "new messages" badge when user scrolls to bottom
+// When user scrolls to bottom, re-render to catch up + hide badge
 var chatEl=document.getElementById('dc-messages');
 if(chatEl)chatEl.addEventListener('scroll',function(){
 if(chatEl.scrollHeight-chatEl.scrollTop-chatEl.clientHeight<80){
-var nb=document.getElementById('dc-new-badge');if(nb)nb.style.display='none';
+var nb=document.getElementById('dc-new-badge');
+if(nb&&nb.style.display==='flex'){nb.style.display='none';renderDiscordChat();}
 }});
 },800);
 })();
