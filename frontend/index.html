@@ -1776,9 +1776,11 @@ var html='';
 
 // Show sources count
 var sc=data.sources||{};
-html+='<div style="display:flex;gap:10px;margin-bottom:12px">';
-if(sc.reddit>0)html+='<div style="background:rgba(255,69,0,0.15);color:#ff6b35;padding:4px 10px;border-radius:6px;font-size:0.72rem;font-weight:600">Reddit · '+sc.reddit+' posts</div>';
+html+='<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px">';
+if(sc.dex>0)html+='<div style="background:rgba(0,191,255,0.15);color:#00bfff;padding:4px 10px;border-radius:6px;font-size:0.72rem;font-weight:600">DexScreener · '+sc.dex+' pairs</div>';
+if(sc.trending>0)html+='<div style="background:rgba(251,191,36,0.15);color:#fbbf24;padding:4px 10px;border-radius:6px;font-size:0.72rem;font-weight:600">CoinGecko · '+sc.trending+' trending</div>';
 if(sc.network>0)html+='<div style="background:rgba(0,255,0,0.1);color:var(--green);padding:4px 10px;border-radius:6px;font-size:0.72rem;font-weight:600">Network · '+sc.network+' msgs</div>';
+if(sc.reddit>0)html+='<div style="background:rgba(255,69,0,0.15);color:#ff6b35;padding:4px 10px;border-radius:6px;font-size:0.72rem;font-weight:600">Reddit · '+sc.reddit+' posts</div>';
 html+='</div>';
 
 // Score bar
@@ -1791,8 +1793,8 @@ if(data.posts&&data.posts.length>0){
 html+='<div style="font-size:0.72rem;font-weight:600;color:var(--text-white);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Posts Analyzed ('+data.posts.length+' real sources)</div>';
 html+='<div class="skill-detail-log" style="max-height:180px">';
 data.posts.forEach(function(p){
-var srcColor=p.source==='Reddit'?'#ff6b35':'var(--green)';
-var srcLabel=p.source==='Reddit'?(p.subreddit||'Reddit'):'EmpusaAI';
+var srcColor=p.source==='DexScreener'?'#00bfff':p.source==='CoinGecko'?'#fbbf24':p.source==='Reddit'?'#ff6b35':'var(--green)';
+var srcLabel=p.source==='DexScreener'?'DexScreener':p.source==='CoinGecko'?'CoinGecko':p.source==='Reddit'?(p.subreddit||'Reddit'):'EmpusaAI';
 html+='<div style="margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.04)">';
 html+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><span style="color:'+srcColor+';font-size:0.68rem;font-weight:600">'+esc(srcLabel)+'</span><span style="color:var(--text-muted);font-size:0.68rem">'+esc(p.author||'')+'</span>';
 if(p.upvotes)html+='<span style="color:var(--text-muted);font-size:0.65rem">↑'+p.upvotes+'</span>';

@@ -12,52 +12,56 @@ const CORS = {
   'Content-Type': 'application/json',
 };
 
-// Fetch real Reddit posts about the token / Monad ecosystem
-async function fetchRedditPosts(token) {
+// Fetch real on-chain DEX data from DexScreener
+async function fetchDexData(token) {
   const clean = token.replace('$', '');
-  const queries = [
-    `${clean} monad crypto`,
-    `${clean} token blockchain`,
-    'monad blockchain DeFi token',
-    'monad memecoin trading',
-  ];
-  const allPosts = [];
+  const posts = [];
+  try {
+    const res = await fetch(`https://api.dexscreener.com/latest/dex/search?q=${encodeURIComponent(clean)}`);
+    if (!res.ok) return posts;
+    const data = await res.json();
+    const pairs = (data.pairs || []).slice(0, 5);
+    for (const p of pairs) {
+      const change = p.priceChange?.h24 || 0;
+      const vol = p.volume?.h24 || 0;
+      const liq = p.liquidity?.usd || 0;
+      const buys = p.txns?.h24?.buys || 0;
+      const sells = p.txns?.h24?.sells || 0;
+      posts.push({
+        source: 'DexScreener',
+        author: p.dexId || 'DEX',
+        title: `${p.baseToken?.symbol || clean}/${p.quoteToken?.symbol || 'USD'} on ${p.chainId || 'unknown'}`,
+        text: `Price: $${p.priceUsd || '?'} | 24h change: ${change > 0 ? '+' : ''}${change}% | Volume: $${vol.toLocaleString()} | Liquidity: $${liq.toLocaleString()} | Buys: ${buys} Sells: ${sells}`,
+        url: p.url || `https://dexscreener.com/search?q=${clean}`,
+        upvotes: buys,
+        time: new Date().toISOString(),
+      });
+    }
+  } catch (_) {}
+  return posts;
+}
 
-  for (const q of queries) {
-    try {
-      const res = await fetch(
-        `https://www.reddit.com/search.json?q=${encodeURIComponent(q)}&sort=new&limit=5&t=month`,
-        { headers: { 'User-Agent': 'EmpusaAI-SentimentBot/1.0 (trading-agent-network)' } }
-      );
-      if (!res.ok) continue;
-      const data = await res.json();
-      if (data.data && data.data.children) {
-        for (const c of data.data.children) {
-          const d = c.data;
-          if (d.selftext || d.title) {
-            allPosts.push({
-              source: 'Reddit',
-              subreddit: 'r/' + d.subreddit,
-              author: 'u/' + d.author,
-              title: d.title,
-              text: (d.selftext || '').substring(0, 200),
-              url: 'https://reddit.com' + d.permalink,
-              upvotes: d.score,
-              time: new Date(d.created_utc * 1000).toISOString(),
-            });
-          }
-        }
-      }
-    } catch (_) {}
-    if (allPosts.length >= 8) break;
-  }
-
-  const seen = new Set();
-  return allPosts.filter(p => {
-    if (seen.has(p.title)) return false;
-    seen.add(p.title);
-    return true;
-  }).slice(0, 8);
+// Fetch trending coins from CoinGecko for market context
+async function fetchTrendingCoins() {
+  const posts = [];
+  try {
+    const res = await fetch('https://api.coingecko.com/api/v3/search/trending');
+    if (!res.ok) return posts;
+    const data = await res.json();
+    const coins = (data.coins || []).slice(0, 4);
+    for (const c of coins) {
+      const item = c.item;
+      posts.push({
+        source: 'CoinGecko',
+        author: 'Trending',
+        title: `${item.name} (${item.symbol}) — #${item.market_cap_rank || '?'} by market cap`,
+        text: `Trending rank: #${item.score + 1}. ${item.name} is currently trending on CoinGecko. Price BTC: ${item.price_btc?.toFixed(10) || '?'}`,
+        url: `https://www.coingecko.com/en/coins/${item.id}`,
+        time: new Date().toISOString(),
+      });
+    }
+  } catch (_) {}
+  return posts;
 }
 
 // Fetch real messages from our own network mentioning the token
@@ -158,12 +162,13 @@ export default async function handler(req) {
     }
 
     // Fetch from multiple real sources in parallel
-    const [redditPosts, networkPosts] = await Promise.all([
-      fetchRedditPosts(token),
+    const [dexPosts, trendingPosts, networkPosts] = await Promise.all([
+      fetchDexData(token),
+      fetchTrendingCoins(),
       fetchNetworkMessages(token),
     ]);
 
-    const allPosts = [...redditPosts, ...networkPosts];
+    const allPosts = [...dexPosts, ...trendingPosts, ...networkPosts];
 
     if (allPosts.length === 0) {
       return new Response(JSON.stringify({
@@ -171,7 +176,7 @@ export default async function handler(req) {
         posts: [],
         analysis: 'No posts found for this token. Insufficient data for sentiment analysis.',
         score: 50,
-        sources: { reddit: 0, network: 0 },
+        sources: { dex: 0, trending: 0, network: 0 },
       }), { status: 200, headers: CORS });
     }
 
@@ -188,7 +193,7 @@ export default async function handler(req) {
       posts: allPosts,
       analysis,
       score,
-      sources: { reddit: redditPosts.length, network: networkPosts.length },
+      sources: { dex: dexPosts.length, trending: trendingPosts.length, network: networkPosts.length },
       analyzedAt: new Date().toISOString(),
     }), { status: 200, headers: CORS });
 
