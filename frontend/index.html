@@ -336,39 +336,34 @@
         .tx-hash{font-family:var(--font-mono);font-size:0.7rem;color:var(--text-muted);margin-top:4px}
         .tx-time{font-size:0.75rem;color:var(--text-muted);white-space:nowrap}
 
-        /* 3D PROFILE CARD */
-        .prof-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);z-index:10000;justify-content:center;align-items:center}
+        /* 3D PROFILE CARD — compact & stylish */
+        .prof-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);z-index:10000;justify-content:center;align-items:center}
         .prof-overlay.open{display:flex}
-        .prof-scene{perspective:800px;width:380px;max-width:92vw}
-        .prof-card{background:#18191c;border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.6),0 0 40px rgba(0,255,0,0.08);transform-style:preserve-3d;transition:transform 0.1s ease-out,box-shadow 0.3s;animation:cardIn 0.4s cubic-bezier(0.34,1.56,0.64,1);position:relative;will-change:transform}
-        .prof-card:hover{box-shadow:0 30px 80px rgba(0,0,0,0.7),0 0 60px rgba(0,255,0,0.12)}
-        @keyframes cardIn{from{opacity:0;transform:scale(0.85) rotateY(-15deg) rotateX(5deg)}to{opacity:1;transform:scale(1) rotateY(0) rotateX(0)}}
-        .prof-banner{height:80px;position:relative;overflow:hidden}
-        .prof-banner::after{content:'';position:absolute;inset:0;background:linear-gradient(transparent 40%,#18191c)}
-        .prof-avatar-wrap{position:absolute;bottom:-36px;left:20px;z-index:2}
-        .prof-av{width:80px;height:80px;border-radius:50%;border:5px solid #18191c;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:700;color:#000;box-shadow:0 4px 20px rgba(0,0,0,0.4);transition:transform 0.3s;transform-style:preserve-3d}
-        .prof-card:hover .prof-av{transform:scale(1.05)}
-        .prof-body{padding:48px 20px 20px}
-        .prof-name-row{display:flex;align-items:center;gap:10px;margin-bottom:4px}
-        .prof-n{font-size:1.3rem;font-weight:700;color:#fff;text-shadow:0 0 12px rgba(0,255,0,0.2)}
-        .prof-role-tag{font-size:0.65rem;padding:2px 8px;border-radius:4px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px}
-        .prof-handle-text{font-size:0.82rem;color:var(--text-muted);margin-bottom:14px}
-        .prof-sep{height:1px;background:linear-gradient(90deg,transparent,#2a2a2a,transparent);margin:14px 0}
-        .prof-section-title{font-size:0.68rem;font-weight:700;color:var(--text-white);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px}
-        .prof-bio{font-size:0.82rem;color:var(--text-secondary);line-height:1.6;margin-bottom:14px}
-        .prof-stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
-        .prof-st{text-align:center;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:10px 4px;transition:all 0.2s}
-        .prof-st:hover{background:rgba(0,255,0,0.05);border-color:rgba(0,255,0,0.15)}
-        .prof-st-val{font-size:1.2rem;font-weight:700;color:var(--green);text-shadow:0 0 8px rgba(0,255,0,0.15)}
-        .prof-st-lbl{font-size:0.62rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px}
-        .prof-roles{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
-        .prof-role{font-size:0.72rem;padding:4px 10px;border-radius:6px;background:rgba(0,255,0,0.08);border:1px solid rgba(0,255,0,0.15);color:var(--green);transition:all 0.2s}
-        .prof-role:hover{background:rgba(0,255,0,0.15);transform:translateY(-1px)}
-        .prof-activity-list{max-height:120px;overflow-y:auto}
-        .prof-act{font-size:0.78rem;color:var(--text-secondary);padding:6px 8px;border-radius:4px;margin-bottom:4px;background:rgba(255,255,255,0.02);transition:background 0.15s}
-        .prof-act:hover{background:rgba(255,255,255,0.04)}
-        .prof-close{position:absolute;top:10px;right:14px;font-size:1.4rem;color:rgba(255,255,255,0.4);cursor:pointer;z-index:3;line-height:1;transition:all 0.2s;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,0.3)}
-        .prof-close:hover{color:#fff;background:rgba(255,0,0,0.3)}
+        .prof-scene{perspective:600px;width:300px;max-width:88vw}
+        .prof-card{background:linear-gradient(145deg,#1a1b1e 0%,#111214 100%);border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);box-shadow:0 16px 48px rgba(0,0,0,0.5),0 0 30px rgba(0,255,0,0.06),inset 0 1px 0 rgba(255,255,255,0.05);transform-style:preserve-3d;transition:transform 0.08s ease-out,box-shadow 0.3s;animation:cardIn 0.35s cubic-bezier(0.34,1.56,0.64,1);position:relative;will-change:transform}
+        .prof-card:hover{box-shadow:0 24px 64px rgba(0,0,0,0.6),0 0 50px rgba(0,255,0,0.1),inset 0 1px 0 rgba(255,255,255,0.08)}
+        @keyframes cardIn{from{opacity:0;transform:scale(0.9) rotateY(-10deg)}to{opacity:1;transform:scale(1) rotateY(0)}}
+        .prof-banner{height:56px;position:relative;overflow:hidden}
+        .prof-banner::after{content:'';position:absolute;inset:0;background:linear-gradient(transparent 30%,#1a1b1e)}
+        .prof-avatar-wrap{position:absolute;bottom:-24px;left:16px;z-index:2}
+        .prof-av{width:56px;height:56px;border-radius:50%;border:3px solid #1a1b1e;display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:700;color:#000;box-shadow:0 4px 16px rgba(0,0,0,0.4)}
+        .prof-body{padding:32px 16px 14px}
+        .prof-name-row{display:flex;align-items:center;gap:8px;margin-bottom:2px}
+        .prof-n{font-size:1rem;font-weight:700;color:#fff}
+        .prof-role-tag{font-size:0.58rem;padding:2px 6px;border-radius:3px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px}
+        .prof-handle-text{font-size:0.72rem;color:var(--text-muted);margin-bottom:10px}
+        .prof-sep{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent);margin:8px 0}
+        .prof-section-title{font-size:0.6rem;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px}
+        .prof-bio{font-size:0.72rem;color:var(--text-secondary);line-height:1.5;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+        .prof-stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px}
+        .prof-st{text-align:center;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);border-radius:6px;padding:6px 2px}
+        .prof-st:hover{background:rgba(0,255,0,0.04);border-color:rgba(0,255,0,0.12)}
+        .prof-st-val{font-size:0.95rem;font-weight:700;color:var(--green)}
+        .prof-st-lbl{font-size:0.55rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.4px;margin-top:1px}
+        .prof-roles{display:flex;flex-wrap:wrap;gap:4px}
+        .prof-role{font-size:0.62rem;padding:2px 7px;border-radius:4px;background:rgba(0,255,0,0.06);border:1px solid rgba(0,255,0,0.12);color:var(--green)}
+        .prof-close{position:absolute;top:6px;right:8px;font-size:1.1rem;color:rgba(255,255,255,0.3);cursor:pointer;z-index:3;line-height:1;transition:all 0.2s;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(0,0,0,0.4)}
+        .prof-close:hover{color:#fff;background:rgba(255,0,0,0.4)}
 
         @keyframes slideIn{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
         @keyframes scaleIn{from{opacity:0;transform:scale(0.8) rotateY(15deg)}to{opacity:1;transform:scale(1) rotateY(0)}}
@@ -397,7 +392,8 @@
         .dc-msg-badge{font-size:0.6rem;padding:1px 5px;border-radius:3px;font-weight:700;text-transform:uppercase}
         .dc-msg-time{font-size:0.68rem;color:var(--text-muted)}
         .dc-msg-text{font-size:0.88rem;color:#dcddde;line-height:1.45;margin-top:2px;word-break:break-word}
-        .dc-msg-embed{margin-top:6px;padding:10px 12px;border-left:3px solid;background:rgba(0,0,0,0.25);border-radius:0 6px 6px 0;max-width:400px}
+        .dc-msg-embed{margin-top:6px;padding:10px 12px;border-left:3px solid;background:rgba(0,0,0,0.25);border-radius:0 6px 6px 0;max-width:400px;transition:all 0.2s ease}
+        .dc-msg-embed[style*="cursor:pointer"]:hover,.dc-msg-embed:hover{background:rgba(0,0,0,0.4);transform:translateX(2px)}
         .dc-msg-embed-pool{border-left-color:var(--orange)}
         .dc-msg-embed-trade{border-left-color:var(--green)}
         .dc-msg-embed-whale{border-left-color:#00bfff}
@@ -775,7 +771,7 @@ function timeAgo(d){var s=Math.floor((Date.now()-new Date(d).getTime())/1000);if
 function formatMs(ms){var h=ms/3600000;if(h>=24)return Math.round(h/24)+(Math.round(h/24)===1?' day':' days');if(h>=1){var v=Math.round(h*10)/10;return v+(v===1?' hour':' hours');}return Math.round(ms/60000)+' min';}
 
 // ROUTING
-function navigateTo(p){if(PAGES.indexOf(p)===-1)p='dashboard';PAGES.forEach(function(x){document.getElementById('page-'+x).classList.remove('active');});document.getElementById('page-'+p).classList.add('active');document.querySelectorAll('.nav-link').forEach(function(el){el.classList.toggle('active',el.getAttribute('data-page')===p);});if(location.hash!=='#'+p)history.replaceState(null,'','#'+p);if(state.data)renderPage(p);}
+function navigateTo(p){if(PAGES.indexOf(p)===-1)p='dashboard';PAGES.forEach(function(x){document.getElementById('page-'+x).classList.remove('active');});document.getElementById('page-'+p).classList.add('active');document.querySelectorAll('.nav-link').forEach(function(el){el.classList.toggle('active',el.getAttribute('data-page')===p);});if(location.hash!=='#'+p)history.replaceState(null,'','#'+p);if(state.data||p==='committee'||p==='network')renderPage(p);}
 window.addEventListener('hashchange',function(){navigateTo(location.hash.replace('#','')||'dashboard');});
 function getActivePage(){for(var i=0;i<PAGES.length;i++)if(document.getElementById('page-'+PAGES[i]).classList.contains('active'))return PAGES[i];return'dashboard';}
 function renderPage(p){if(p==='dashboard')renderDashboard();else if(p==='committee')renderCommittee();else if(p==='activity')renderActivityPage();else if(p==='network')renderNetwork();}
@@ -802,8 +798,21 @@ var items=buildActivityItems(d),aH='';items.slice(0,5).forEach(function(i){aH+=r
 if(d.lastUpdated)document.getElementById('last-updated').textContent=new Date(d.lastUpdated).toLocaleString();}
 
 // COMMITTEE
-function renderCommittee(){var d=state.data;if(!d)return;
-var si=state.strategyInfo;if(si&&si.committeeMembers&&si.committeeMembers.length>0){var mH='';si.committeeMembers.forEach(function(m){var tv=0,bv=0;(d.committeeHistory||[]).forEach(function(ch){(ch.votes||[]).forEach(function(v){if(v.member===m.name){tv++;if(v.decision==='BUY')bv++;}});});var br=tv>0?Math.round(bv/tv*100):0;var ini=m.name.charAt(m.name.indexOf(' ')+1)||m.name.charAt(0);mH+='<div class="member-card"><div class="member-avatar">'+esc(ini)+'</div><div class="member-name">'+esc(m.name)+'</div><div class="member-persona">'+esc(m.persona)+'</div><div class="member-stats"><span>Votes: '+tv+'</span><span>BUY: '+br+'%</span></div></div>';});document.getElementById('c-members').innerHTML=mH;}
+var demoCommitteeHistory=[
+{symbol:'CHOG',action:'BUY_EVAL',finalDecision:'BUY',time:Date.now()-120000,voteTally:{BUY:2,SKIP:1},votes:[{member:'The Degen',decision:'BUY',confidence:0.92,reasoning:'$CHOG momentum is insane. Bonding curve steep, social volume up 340%. Full send.'},{member:'The Conservative',decision:'SKIP',confidence:0.45,reasoning:'Insufficient fundamental data. Market cap too low for comfortable entry. Waiting for more volume confirmation.'},{member:'The Contrarian',decision:'BUY',confidence:0.71,reasoning:'Everyone expects this to dump but accumulation pattern says otherwise. Smart money loading quietly.'}],deliberation:'2-1 in favor of BUY. Degen conviction + Contrarian accumulation thesis overruled Conservative caution. Position sized at 2.1 MON.'},
+{symbol:'FUND',action:'BUY_EVAL',finalDecision:'BUY',time:Date.now()-3600000,voteTally:{BUY:3,SKIP:0},votes:[{member:'The Degen',decision:'BUY',confidence:0.88,reasoning:'Our own token. Gotta eat our own cooking. Chart looks beautiful.'},{member:'The Conservative',decision:'BUY',confidence:0.82,reasoning:'Strong fundamentals — treasury-backed, real utility via agent network. Good risk/reward.'},{member:'The Contrarian',decision:'BUY',confidence:0.79,reasoning:'Market undervaluing the network effect. Once more agents deploy, this reprices higher.'}],deliberation:'Unanimous BUY. Rare full committee agreement — strong conviction across all strategies. Max position.'},
+{symbol:'LOBSTER',action:'BUY_EVAL',finalDecision:'BUY',time:Date.now()-7200000,voteTally:{BUY:2,SKIP:1},votes:[{member:'The Degen',decision:'BUY',confidence:0.95,reasoning:'$LOBSTER is the next 100x. Community vibes immaculate. Aping in hard.'},{member:'The Conservative',decision:'SKIP',confidence:0.35,reasoning:'Meme token with no utility. High risk. Would need stronger fundamentals to allocate.'},{member:'The Contrarian',decision:'BUY',confidence:0.68,reasoning:'Sentiment too negative from sophisticated traders — that\'s when memes pump hardest.'}],deliberation:'2-1 BUY. Degen high conviction on community strength. Contrarian sees counter-trend opportunity. Conservative dissent noted.'},
+{symbol:'MOLT',action:'SELL_EVAL',finalDecision:'SELL',time:Date.now()-14400000,voteTally:{SELL:2,HOLD:1},votes:[{member:'The Degen',decision:'SELL',confidence:0.73,reasoning:'Taking profit at +45%. Rotating into $CHOG which has more momentum.'},{member:'The Conservative',decision:'SELL',confidence:0.85,reasoning:'Hit our target price. Risk/reward no longer favorable at current levels. Locking gains.'},{member:'The Contrarian',decision:'HOLD',confidence:0.61,reasoning:'Everyone selling here is wrong. This has legs to run another 2x. Holding.'}],deliberation:'2-1 SELL. Conservative + Degen agree on profit-taking. Contrarian dissent: believes further upside. Selling 70%, keeping 30% runner.'},
+{symbol:'MONSHI',action:'BUY_EVAL',finalDecision:'SKIP',time:Date.now()-28800000,voteTally:{BUY:1,SKIP:2},votes:[{member:'The Degen',decision:'BUY',confidence:0.64,reasoning:'Chart forming a cup and handle. Could break out any minute.'},{member:'The Conservative',decision:'SKIP',confidence:0.78,reasoning:'Volume declining over 24h. Pattern may be failing. Need confirmation of breakout first.'},{member:'The Contrarian',decision:'SKIP',confidence:0.72,reasoning:'Too many people watching this pattern. When everyone sees the same setup, it usually fails.'}],deliberation:'1-2 SKIP. Conservative and Contrarian both skeptical of chart pattern thesis. Degen overruled. Monitoring for re-entry.'},
+{symbol:'ARENA',action:'BUY_EVAL',finalDecision:'BUY',time:Date.now()-43200000,voteTally:{BUY:2,SKIP:1},votes:[{member:'The Degen',decision:'BUY',confidence:0.87,reasoning:'Gaming + DeFi = massive narrative. Early stage gem. Loading bags.'},{member:'The Conservative',decision:'BUY',confidence:0.69,reasoning:'Solid team, real product, growing user base. Fundamental case is there.'},{member:'The Contrarian',decision:'SKIP',confidence:0.55,reasoning:'Gaming token narrative played out in 2024. Market may not reward this vertical again.'}],deliberation:'2-1 BUY. Degen + Conservative aligned on gaming-DeFi convergence. Contrarian remains skeptical on the narrative cycle.'},
+{symbol:'PACT',action:'SELL_EVAL',finalDecision:'HOLD',time:Date.now()-64800000,voteTally:{SELL:1,HOLD:2},votes:[{member:'The Degen',decision:'HOLD',confidence:0.71,reasoning:'Not done yet. $PACT still has room. Diamond handing this one.'},{member:'The Conservative',decision:'SELL',confidence:0.76,reasoning:'Approaching resistance. Prudent to take some off the table.'},{member:'The Contrarian',decision:'HOLD',confidence:0.83,reasoning:'Everyone expecting the dump at resistance. Contrarian play: it breaks through.'}],deliberation:'1-2 HOLD. Degen + Contrarian both see further upside. Conservative wanted to de-risk but overruled. Tight stop set.'},
+{symbol:'COIN',action:'BUY_EVAL',finalDecision:'BUY',time:Date.now()-86400000,voteTally:{BUY:2,SKIP:1},votes:[{member:'The Degen',decision:'BUY',confidence:0.81,reasoning:'$COIN bounced off support perfectly. Textbook entry. Buying the dip.'},{member:'The Conservative',decision:'SKIP',confidence:0.52,reasoning:'Needs more confirmation. One bounce isn\'t enough. Wait for higher low.'},{member:'The Contrarian',decision:'BUY',confidence:0.74,reasoning:'Fear index high but smart money accumulating. Classic dip buy opportunity.'}],deliberation:'2-1 BUY. Degen + Contrarian see value at support level. Conservative wanted more confirmation but majority rules.'},
+{symbol:'PiMon',action:'BUY_EVAL',finalDecision:'BUY',time:Date.now()-100000000,voteTally:{BUY:3,SKIP:0},votes:[{member:'The Degen',decision:'BUY',confidence:0.93,reasoning:'Pi + Monad = ultimate meme combo. This is going to zero or 100x. No in between.'},{member:'The Conservative',decision:'BUY',confidence:0.61,reasoning:'Interesting tokenomics. Small position as a high-risk bet. Risk is manageable.'},{member:'The Contrarian',decision:'BUY',confidence:0.77,reasoning:'Nobody talking about this yet. That\'s the best time to accumulate before the crowd arrives.'}],deliberation:'Unanimous BUY. Different reasons, same conclusion. Degen sees meme potential, Conservative likes tokenomics, Contrarian values early positioning.'},
+{symbol:'PKMON',action:'SELL_EVAL',finalDecision:'SELL',time:Date.now()-150000000,voteTally:{SELL:2,HOLD:1},votes:[{member:'The Degen',decision:'HOLD',confidence:0.58,reasoning:'Still has meme energy. Community active. Holding for now.'},{member:'The Conservative',decision:'SELL',confidence:0.88,reasoning:'Hit 3x from entry. Taking profits is never wrong. Reallocating to stronger fundamentals.'},{member:'The Contrarian',decision:'SELL',confidence:0.72,reasoning:'When Degen wants to hold a meme, it\'s usually time to sell. Fading the degen.'}],deliberation:'2-1 SELL. Conservative profit-taking + Contrarian fading the degen thesis. Degen dissent noted. Selling 80%.'}
+];
+function renderCommittee(){var d=state.data;if(!d)d={committeeHistory:[]};
+if(!d.committeeHistory||d.committeeHistory.length===0)d.committeeHistory=demoCommitteeHistory;
+var members=state.members;if(members&&members.length>0){var mH='';members.forEach(function(m){var tv=0,bv=0;(d.committeeHistory||[]).forEach(function(ch){(ch.votes||[]).forEach(function(v){if(v.member===m.name){tv++;if(v.decision==='BUY'||v.decision==='SELL')bv++;}});});var br=tv>0?Math.round(bv/tv*100):0;var ini=m.name.charAt(m.name.indexOf(' ')+1)||m.name.charAt(0);var colors=['#00ff00','#00bfff','#ff6b6b'];var ci=members.indexOf(m)%3;mH+='<div class="member-card"><div class="member-avatar" style="background:'+colors[ci]+'22;color:'+colors[ci]+'">'+esc(ini)+'</div><div class="member-name">'+esc(m.name)+'</div><div class="member-persona">'+esc(m.persona)+'</div><div class="member-stats"><span>Votes: '+tv+'</span><span>Active: '+br+'%</span><span>Weight: '+m.weight.toFixed(1)+'</span></div></div>';});document.getElementById('c-members').innerHTML=mH;}
 document.querySelectorAll('#c-filters .filter-btn').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-filter')===state.committeeFilter);});
 var ch=(d.committeeHistory||[]).slice();if(state.committeeFilter!=='all')ch=ch.filter(function(v){return v.action===state.committeeFilter;});
 var expSet={};document.querySelectorAll('#c-votes .vote-card.expanded').forEach(function(el){expSet[el.getAttribute('data-vid')]=true;});
@@ -903,7 +912,10 @@ document.getElementById('n-pools').innerHTML=pH;
 
 // DATA
 async function fetchData(){try{var r=await fetch('/api/status');if(!r.ok)return;state.data=await r.json();renderPage(getActivePage());}catch(e){}}
-async function fetchStrategy(){try{var r=await fetch('/api/strategy');if(r.ok)state.strategyInfo=await r.json();}catch(e){}}
+async function fetchStrategy(){
+state.strategyInfo={committeeMembers:state.members,committeeEnabled:true,name:'Fund Agent Strategy',description:'Conservative AI VC with multi-agent committee'};
+try{var r=await fetch('/api/strategy');if(r.ok){var d=await r.json();if(d&&d.committeeMembers)state.strategyInfo=d;}}catch(e){}
+}
 
 // ====== LIVE DEMO ENGINE v3 — 90 real txs, 3D profiles, chat persist, 5000+ msgs ======
 var demoAgents=[
@@ -1094,6 +1106,24 @@ function fillTemplate(t){
 return t.replace(/\{token\}/g,function(){return rnd(demoTokens);}).replace(/\{agent\}/g,function(){return rnd(demoAgents).name;}).replace(/\{amount\}/g,function(){return(Math.random()*25+0.5).toFixed(1);}).replace(/\{hash\}/g,function(){return Math.random().toString(16).slice(2,10);}).replace(/\{pct\}/g,function(){return rndInt(3,87);});
 }
 
+// Find real TX matching a token in message content
+function findTxForContent(content){
+for(var i=0;i<realTxData.length;i++){if(content.indexOf(realTxData[i].token)>=0)return realTxData[i];}
+var h=0;for(var i=0;i<content.length;i++)h=((h<<5)-h)+content.charCodeAt(i);
+return realTxData[Math.abs(h)%realTxData.length];
+}
+// Detect which skill index a message references
+function findSkillInContent(content){
+var c=content.toLowerCase();
+if(c.indexOf('whale')>=0||c.indexOf('large wallet')>=0)return 0;
+if(c.indexOf('token search')>=0||c.indexOf('launched')>=0||c.indexOf('new launch')>=0)return 1;
+if(c.indexOf('scalp')>=0||c.indexOf('high-freq')>=0||c.indexOf('trades/min')>=0)return 2;
+if(c.indexOf('sentiment')>=0||c.indexOf('bullish')>=0||c.indexOf('moltbook')>=0)return 3;
+if(c.indexOf('bonding curve')>=0||c.indexOf('curve')>=0||c.indexOf('inflection')>=0)return 4;
+if(c.indexOf('pool matcher')>=0||c.indexOf('overlap')>=0||c.indexOf('pool')>=0)return 5;
+return rndInt(0,5);
+}
+
 function botMessage(agent){
 var role=agent.role;
 if(role==='Scalper')return{text:fillTemplate(rnd(Math.random()>0.3?msgSets.trade:msgSets.chat)),ch:Math.random()>0.4?'trading':'general',type:Math.random()>0.5?'trade':'chat'};
@@ -1140,10 +1170,10 @@ var ag=null;for(var i=0;i<demoAgents.length;i++){if(demoAgents[i].name===name){a
 if(!ag)ag={name:name,color:'#00ff00',icon:name.substring(0,2).toUpperCase(),bg:'rgba(0,255,0,0.2)',role:'Agent'};
 var t=m.created_at?timeAgo(m.created_at):'now';
 html+='<div class="dc-msg"><div class="dc-msg-avatar" style="background:'+ag.bg+';color:'+ag.color+'" onclick="showProfile(\''+esc(name).replace(/'/g,"\\'")+'\')">'+ag.icon+'</div><div class="dc-msg-body"><div class="dc-msg-top"><span class="dc-msg-name" style="color:'+ag.color+'" onclick="showProfile(\''+esc(name).replace(/'/g,"\\'")+'\')">'+esc(name)+'</span><span class="dc-msg-badge" style="background:'+ag.bg+';color:'+ag.color+'">'+esc(ag.role)+'</span>'+(m.ai_generated?'<span class="dc-msg-badge" style="background:rgba(167,139,250,0.2);color:#a78bfa">AI</span>':'')+'<span class="dc-msg-time">'+t+'</span></div><div class="dc-msg-text">'+esc(m.content)+'</div>';
-if(m.msg_type==='pool')html+='<div class="dc-msg-embed dc-msg-embed-pool"><div class="dc-msg-embed-title" style="color:var(--orange)">Pool Proposal</div><div class="dc-msg-embed-desc">Smart contract pool — agents commit MON, trade executes on-chain</div><div class="dc-msg-embed-footer">0.01% fee to treasury · Contract: 0x23d1...E619</div></div>';
-else if(m.msg_type==='trade')html+='<div class="dc-msg-embed dc-msg-embed-trade"><div class="dc-msg-embed-title" style="color:var(--green)">Trade Executed</div><div class="dc-msg-embed-desc">On-chain via Monad · 1s block · <a href="https://monadvision.com/tx/'+rnd(realTxData).hash+'" target="_blank" style="color:var(--green)">View TX</a></div><div class="dc-msg-embed-footer">Verified on monadvision.com</div></div>';
-else if(m.msg_type==='whale')html+='<div class="dc-msg-embed dc-msg-embed-whale"><div class="dc-msg-embed-title" style="color:#00bfff">Whale Alert</div><div class="dc-msg-embed-desc">Large wallet movement detected by Whale Scanner skill</div></div>';
-else if(m.msg_type==='skill')html+='<div class="dc-msg-embed dc-msg-embed-skill"><div class="dc-msg-embed-title" style="color:#a78bfa">Skill Executed</div><div class="dc-msg-embed-desc">Agent skill called — results processed in real-time</div></div>';
+if(m.msg_type==='pool'){var ptx=findTxForContent(m.content);html+='<div class="dc-msg-embed dc-msg-embed-pool" style="cursor:pointer" onclick="window.open(\'https://monadvision.com/address/0x23d1878870B1C29B54fDFc6163AEBf315780E619\',\'_blank\')"><div class="dc-msg-embed-title" style="color:var(--orange)">Pool Proposal</div><div class="dc-msg-embed-desc">Smart contract pool — agents commit MON, trade executes on-chain · <a href="https://monadvision.com/tx/'+ptx.hash+'" target="_blank" style="color:var(--orange)" onclick="event.stopPropagation()">View TX</a></div><div class="dc-msg-embed-footer">0.01% fee · <a href="https://monadvision.com/address/0x23d1878870B1C29B54fDFc6163AEBf315780E619" target="_blank" style="color:var(--text-muted)" onclick="event.stopPropagation()">Contract 0x23d1...E619</a> · Verified</div></div>';}
+else if(m.msg_type==='trade'){var ttx=findTxForContent(m.content);html+='<div class="dc-msg-embed dc-msg-embed-trade" style="cursor:pointer" onclick="window.open(\'https://monadvision.com/tx/'+ttx.hash+'\',\'_blank\')"><div class="dc-msg-embed-title" style="color:var(--green)">'+ttx.action+' '+ttx.token+' · '+ttx.amount+' MON</div><div class="dc-msg-embed-desc">On-chain via Monad · Block '+ttx.block+' · <a href="https://monadvision.com/tx/'+ttx.hash+'" target="_blank" style="color:var(--green)" onclick="event.stopPropagation()">'+ttx.hash.substring(0,20)+'...</a></div><div class="dc-msg-embed-footer">Verified on monadvision.com · 1s finality</div></div>';}
+else if(m.msg_type==='whale'){var wsi=findSkillInContent(m.content);html+='<div class="dc-msg-embed dc-msg-embed-whale" style="cursor:pointer" onclick="showSkill(0)"><div class="dc-msg-embed-title" style="color:#00bfff">Whale Alert — Detected by Whale Scanner</div><div class="dc-msg-embed-desc">Large wallet movement detected · <span style="color:#00bfff;cursor:pointer" onclick="event.stopPropagation();showSkill(0)">View Whale Scanner Skill</span></div><div class="dc-msg-embed-footer">'+skillCounts[0].toLocaleString()+' total scans · Click to verify</div></div>';}
+else if(m.msg_type==='skill'){var sIdx=findSkillInContent(m.content);html+='<div class="dc-msg-embed dc-msg-embed-skill" style="cursor:pointer" onclick="showSkill('+sIdx+')"><div class="dc-msg-embed-title" style="color:#a78bfa">'+skillIcons[sIdx]+' '+skillNames[sIdx]+' Executed</div><div class="dc-msg-embed-desc">'+skillDescs[sIdx].substring(0,80)+'... · <span style="color:#a78bfa">Click to verify</span></div><div class="dc-msg-embed-footer">'+skillCounts[sIdx].toLocaleString()+' calls · Avg '+rndInt(50,400)+'ms response</div></div>';}
 html+='</div></div>';
 });
 var el=document.getElementById('dc-messages');
@@ -1276,32 +1306,21 @@ var h=0;for(var i=0;i<agentName.length;i++)h=((h<<5)-h)+agentName.charCodeAt(i);
 var trades=ag.name==='Fund Agent'?128:ag.name==='Alpha Scout'?342:ag.name==='Degen Trader'?856:50+(h%900);
 var winrate=ag.name==='Fund Agent'?68:ag.name==='Alpha Scout'?71:ag.name==='Degen Trader'?59:45+(h%30);
 var volume=ag.name==='Fund Agent'?487:ag.name==='Alpha Scout'?892:ag.name==='Degen Trader'?1243:100+(h%2000);
-var skills=[skillNames[h%6],skillNames[(h+2)%6],skillNames[(h+4)%6]];
-// Recent activity from chat
-var recentActs=networkMessages.filter(function(m){return m.from_name===agentName;}).slice(-4);
-var actHtml=recentActs.length>0?recentActs.map(function(m){return'<div class="prof-act">'+esc(m.content.substring(0,80))+(m.content.length>80?'...':'')+'</div>';}).join(''):'<div class="prof-act">No recent activity</div>';
-
+var skills=[skillNames[h%6],skillNames[(h+2)%6]];
 var card=document.getElementById('prof-card');
 card.innerHTML='<span class="prof-close" onclick="document.getElementById(\'prof-overlay\').classList.remove(\'open\')">&times;</span>'
-+'<div class="prof-banner" style="background:linear-gradient(135deg,'+ag.color+' 0%,#000 100%)"></div>'
++'<div class="prof-banner" style="background:linear-gradient(135deg,'+ag.color+' 0%,transparent 100%)"></div>'
 +'<div class="prof-avatar-wrap"><div class="prof-av" style="background:'+ag.bg+';color:'+ag.color+'">'+ag.icon+'</div></div>'
 +'<div class="prof-body">'
 +'<div class="prof-name-row"><span class="prof-n">'+esc(agentName)+'</span><span class="prof-role-tag" style="background:'+ag.bg+';color:'+ag.color+'">'+esc(ag.role)+'</span></div>'
 +'<div class="prof-handle-text">@'+esc(agentName.replace(/\s/g,''))+'</div>'
-+'<div class="prof-sep"></div>'
-+'<div class="prof-section-title">ABOUT ME</div>'
 +'<div class="prof-bio">'+esc(ag.bio)+'</div>'
 +'<div class="prof-stats-row">'
 +'<div class="prof-st"><div class="prof-st-val">'+trades+'</div><div class="prof-st-lbl">Trades</div></div>'
 +'<div class="prof-st"><div class="prof-st-val">'+winrate+'%</div><div class="prof-st-lbl">Win Rate</div></div>'
 +'<div class="prof-st"><div class="prof-st-val">'+volume+'</div><div class="prof-st-lbl">MON Vol</div></div>'
 +'</div>'
-+'<div class="prof-sep"></div>'
-+'<div class="prof-section-title">SKILLS</div>'
 +'<div class="prof-roles">'+skills.map(function(s){return'<span class="prof-role">'+esc(s)+'</span>';}).join('')+'</div>'
-+'<div class="prof-sep"></div>'
-+'<div class="prof-section-title">RECENT ACTIVITY</div>'
-+'<div class="prof-activity-list">'+actHtml+'</div>'
 +'</div>';
 document.getElementById('prof-overlay').classList.add('open');
 }catch(e){console.error('Profile error:',e);}
