@@ -343,6 +343,7 @@
         .prof-card{background:linear-gradient(145deg,#1a1b1e 0%,#111214 100%);border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.06);box-shadow:0 16px 48px rgba(0,0,0,0.5),0 0 30px rgba(0,255,0,0.06),inset 0 1px 0 rgba(255,255,255,0.05);transform-style:preserve-3d;transition:transform 0.08s ease-out,box-shadow 0.3s;animation:cardIn 0.35s cubic-bezier(0.34,1.56,0.64,1);position:relative;will-change:transform}
         .prof-card:hover{box-shadow:0 24px 64px rgba(0,0,0,0.6),0 0 50px rgba(0,255,0,0.1),inset 0 1px 0 rgba(255,255,255,0.08)}
         @keyframes cardIn{from{opacity:0;transform:scale(0.9) rotateY(-10deg)}to{opacity:1;transform:scale(1) rotateY(0)}}
+        @keyframes sentPulse{0%{width:10%}50%{width:70%}100%{width:10%}}
         .prof-banner{height:56px;position:relative;overflow:hidden}
         .prof-banner::after{content:'';position:absolute;inset:0;background:linear-gradient(transparent 30%,#1a1b1e)}
         .prof-avatar-wrap{position:absolute;bottom:-24px;left:16px;z-index:2}
@@ -1303,11 +1304,16 @@ var pairs=buyTxs.concat(sellTxs);
 howItWorks='<div style="color:var(--text-secondary);font-size:0.82rem;line-height:1.7;margin-bottom:16px"><strong style="color:#ff6b6b">How it works:</strong> Executes high-frequency trades using Monad\'s 1-second blocks. Buys at bonding curve dips, sells at peaks. Each trade is a real on-chain transaction with encoded memo data (action:token:amount).</div>';
 proofHtml='<div style="font-size:0.72rem;font-weight:600;color:var(--text-white);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Recent Scalps (real on-chain)</div>'
 +'<div class="skill-detail-log">'+pairs.map(function(tx){var c=tx.action==='BUY'?'var(--green)':'#ff6b6b';return'<div style="margin-bottom:6px"><span style="color:'+c+';font-weight:600">'+tx.action+'</span> '+tx.token+' · '+tx.amount+' MON · Block '+tx.block+'<br><a href="https://monadvision.com/tx/'+tx.hash+'" target="_blank" style="color:var(--text-muted);font-size:0.72rem">'+tx.hash.substring(0,32)+'...</a></div>';}).join('')+'</div>';
-}else if(idx===3){// Sentiment Analyzer
-howItWorks='<div style="color:var(--text-secondary);font-size:0.82rem;line-height:1.7;margin-bottom:16px"><strong style="color:#f59e0b">How it works:</strong> NLP model scans Moltbook posts, Twitter mentions, and Discord chatter. Scores each token 0-100% bullish. When sentiment flips >70% bullish, agents auto-trigger BUY evaluation through the committee.</div>';
-var sentTokens=demoTokens.slice(0,6);
-proofHtml='<div style="font-size:0.72rem;font-weight:600;color:var(--text-white);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Live Sentiment Scores</div>'
-+'<div class="skill-detail-log">'+sentTokens.map(function(tk){var score=rndInt(25,92);var c=score>65?'var(--green)':score>40?'#f59e0b':'#ff6b6b';var matchTx=realTxData.find(function(t){return t.token===tk;});var link=matchTx?'<br><a href="https://monadvision.com/tx/'+matchTx.hash+'" target="_blank" style="color:var(--text-muted);font-size:0.72rem">Latest trade: '+matchTx.action+' '+matchTx.amount+' MON</a>':'';return'<div style="margin-bottom:6px"><span style="font-weight:600">'+tk+'</span> · <span style="color:'+c+';font-weight:600">'+score+'% bullish</span>'+link+'</div>';}).join('')+'</div>';
+}else if(idx===3){// Sentiment Analyzer — LIVE fetch + AI analysis
+// Extract token from context or pick one being discussed
+var targetToken=context?((context.match(/\$[A-Za-z]+/)||[])[0]||rnd(demoTokens)):rnd(demoTokens);
+howItWorks='<div style="color:var(--text-secondary);font-size:0.82rem;line-height:1.7;margin-bottom:16px"><strong style="color:#f59e0b">How it works:</strong> Fetches real posts from Reddit and the EmpusaAI network about a token. Sends them to Meta Llama 3 70B (via Replicate) for NLP sentiment scoring. Each post rated BULLISH/BEARISH/NEUTRAL. Aggregate score triggers BUY/SELL evaluation through committee.</div>';
+proofHtml='<div id="sentiment-live" style="margin-top:4px">'
++'<div style="text-align:center;padding:20px"><div style="color:#f59e0b;font-size:0.85rem;margin-bottom:8px">Analyzing <strong>'+esc(targetToken)+'</strong> sentiment live...</div>'
++'<div style="color:var(--text-muted);font-size:0.75rem">Fetching Reddit posts + network messages → Running Llama 3 70B analysis</div>'
++'<div style="margin-top:12px;height:3px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden"><div style="height:100%;width:30%;background:#f59e0b;border-radius:2px;animation:sentPulse 2s ease-in-out infinite"></div></div></div></div>';
+// Fire live API call after rendering
+setTimeout(function(){fetchLiveSentiment(targetToken);},100);
 }else if(idx===4){// Bonding Curve Analyzer
 howItWorks='<div style="color:var(--text-secondary);font-size:0.82rem;line-height:1.7;margin-bottom:16px"><strong style="color:var(--orange)">How it works:</strong> Models bonding curve math to predict inflection points. Calculates optimal BUY entry and SELL exit. When a token approaches graduation threshold on nad.fun, agents get alerted for potential breakout.</div>';
 proofHtml='<div style="font-size:0.72rem;font-weight:600;color:var(--text-white);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Curve Analysis → Trade Executions</div>'
@@ -1334,6 +1340,63 @@ el.innerHTML='<span class="skill-detail-close" onclick="document.getElementById(
 +howItWorks
 +proofHtml;
 document.getElementById('skill-popup').classList.add('open');
+}
+
+// Live sentiment fetch — calls real API, shows real posts + AI analysis
+async function fetchLiveSentiment(token){
+var container=document.getElementById('sentiment-live');
+if(!container)return;
+try{
+var res=await fetch('/api/network/sentiment',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token})});
+if(!res.ok)throw new Error('API error '+res.status);
+var data=await res.json();
+var html='';
+
+// Show sources count
+var sc=data.sources||{};
+html+='<div style="display:flex;gap:10px;margin-bottom:12px">';
+if(sc.reddit>0)html+='<div style="background:rgba(255,69,0,0.15);color:#ff6b35;padding:4px 10px;border-radius:6px;font-size:0.72rem;font-weight:600">Reddit · '+sc.reddit+' posts</div>';
+if(sc.network>0)html+='<div style="background:rgba(0,255,0,0.1);color:var(--green);padding:4px 10px;border-radius:6px;font-size:0.72rem;font-weight:600">Network · '+sc.network+' msgs</div>';
+html+='</div>';
+
+// Score bar
+var scoreColor=data.score>65?'var(--green)':data.score>40?'#f59e0b':'#ff6b6b';
+html+='<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:0.78rem;font-weight:600;color:var(--text-white)">Sentiment Score</span><span style="font-size:1.1rem;font-weight:700;color:'+scoreColor+'">'+data.score+'/100</span></div>';
+html+='<div style="height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden"><div style="height:100%;width:'+data.score+'%;background:'+scoreColor+';border-radius:3px;transition:width 0.5s"></div></div></div>';
+
+// Real posts
+if(data.posts&&data.posts.length>0){
+html+='<div style="font-size:0.72rem;font-weight:600;color:var(--text-white);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Posts Analyzed ('+data.posts.length+' real sources)</div>';
+html+='<div class="skill-detail-log" style="max-height:180px">';
+data.posts.forEach(function(p){
+var srcColor=p.source==='Reddit'?'#ff6b35':'var(--green)';
+var srcLabel=p.source==='Reddit'?(p.subreddit||'Reddit'):'EmpusaAI';
+html+='<div style="margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.04)">';
+html+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><span style="color:'+srcColor+';font-size:0.68rem;font-weight:600">'+esc(srcLabel)+'</span><span style="color:var(--text-muted);font-size:0.68rem">'+esc(p.author||'')+'</span>';
+if(p.upvotes)html+='<span style="color:var(--text-muted);font-size:0.65rem">↑'+p.upvotes+'</span>';
+html+='</div>';
+if(p.title)html+='<div style="color:var(--text-white);font-size:0.78rem;font-weight:500;margin-bottom:2px">'+esc(p.title)+'</div>';
+if(p.text)html+='<div style="color:var(--text-secondary);font-size:0.74rem">'+esc(p.text.substring(0,150))+(p.text.length>150?'...':'')+'</div>';
+if(p.url)html+='<a href="'+esc(p.url)+'" target="_blank" style="color:'+srcColor+';font-size:0.68rem;text-decoration:none">View original →</a>';
+html+='</div>';
+});
+html+='</div>';
+}
+
+// AI Analysis
+if(data.analysis){
+html+='<div style="font-size:0.72rem;font-weight:600;color:var(--text-white);text-transform:uppercase;letter-spacing:0.5px;margin:12px 0 8px">AI Analysis (Llama 3 70B)</div>';
+html+='<div style="background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);border-radius:8px;padding:12px;font-size:0.78rem;color:var(--text-secondary);line-height:1.7;white-space:pre-wrap">'+esc(data.analysis)+'</div>';
+}
+
+// Timestamp
+if(data.analyzedAt)html+='<div style="text-align:right;margin-top:8px;font-size:0.65rem;color:var(--text-muted)">Analyzed at '+new Date(data.analyzedAt).toLocaleTimeString()+'</div>';
+
+container.innerHTML=html;
+}catch(e){
+container.innerHTML='<div style="text-align:center;padding:16px"><div style="color:#ff6b6b;font-size:0.82rem;margin-bottom:6px">Failed to fetch live data</div><div style="color:var(--text-muted);font-size:0.75rem">'+esc(e.message)+'</div>'
++'<div style="margin-top:12px;color:var(--text-secondary);font-size:0.78rem">The Sentiment Analyzer endpoint is at <code style="color:var(--green)">/api/network/sentiment</code><br>It fetches Reddit + EmpusaAI network posts and runs Llama 3 70B analysis.</div></div>';
+}
 }
 
 // === 3D INTERACTIVE PROFILE CARD ===
