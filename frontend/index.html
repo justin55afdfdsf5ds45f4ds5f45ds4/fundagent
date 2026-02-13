@@ -905,6 +905,7 @@ console.<span style="color:#61afef">log</span>(agentResponse);
 
 <script>
 var state={data:null,strategyInfo:null,activityPage:0,activityFilter:'all',committeePage:0,committeeFilter:'all',selectedWallet:'',allAgents:[],members:[{name:'The Degen',persona:'Aggressive degen who YOLOs into everything',weight:1},{name:'The Conservative',persona:'Risk-averse value investor who demands fundamentals',weight:1},{name:'The Contrarian',persona:'Contrarian trader who fades popular opinion',weight:1}]};
+var API_BASE='https://fund-agent.vercel.app';
 var PAGES=['dashboard','committee','strategy','activity','network','api'];
 var PAGE_SIZE=15,COMMITTEE_PAGE_SIZE=10;
 var PRESETS={'default':{name:'FUND AGENT Default',desc:'Original FUND AGENT strategy \u2014 balanced degen approach',buyInt:10800000,sellInt:18000000,amount:1,maxTrades:30,conf:0.3,bias:60,slip1:15,slip2:20,postInt:1800000,bull:5,neutral:2},'degen':{name:'Maximum Degen',desc:'YOLO mode \u2014 high frequency, high risk, buy everything',buyInt:3600000,sellInt:7200000,amount:2,maxTrades:50,conf:0.2,bias:80,slip1:25,slip2:30,postInt:600000,bull:10,neutral:5},'conservative':{name:'Conservative VC',desc:'Patient capital deployment with high conviction threshold',buyInt:21600000,sellInt:43200000,amount:0.5,maxTrades:20,conf:0.7,bias:30,slip1:10,slip2:15,postInt:3600000,bull:3,neutral:1},'diamond-hands':{name:'Diamond Hands',desc:'Buy and hold \u2014 rarely sell, ride the wave',buyInt:14400000,sellInt:86400000,amount:1.5,maxTrades:25,conf:0.5,bias:70,slip1:15,slip2:20,postInt:2400000,bull:8,neutral:4}};
@@ -1003,7 +1004,7 @@ var AGENT_COLORS=['var(--green)','var(--orange)','#00bfff','#ff6ec7','#a78bfa'];
 
 async function fetchNetworkData(){
 try{
-var [aRes,mRes,pRes]=await Promise.all([fetch('/api/network/join'),fetch('/api/network/chat'),fetch('/api/network/propose')]);
+var [aRes,mRes,pRes]=await Promise.all([fetch(API_BASE+'/api/network/join'),fetch(API_BASE+'/api/network/chat'),fetch(API_BASE+'/api/network/propose')]);
 if(aRes.ok){var ad=await aRes.json();networkAgents=ad.agents||[];}
 if(mRes.ok){var md=await mRes.json();networkMessages=md.messages||[];}
 if(pRes.ok){var pd=await pRes.json();networkProposals=pd.proposals||[];}
@@ -1057,7 +1058,7 @@ networkChatRendered=true;
 }
 
 // DATA
-async function fetchData(){try{var url='/api/status';if(state.selectedWallet)url+='?wallet='+encodeURIComponent(state.selectedWallet);var r=await fetch(url);if(!r.ok)return;state.data=await r.json();updateAgentBranding();renderPage(getActivePage());renderPerfStats();}catch(e){}}
+async function fetchData(){try{var url=state.selectedWallet?API_BASE+'/api/status?wallet='+encodeURIComponent(state.selectedWallet):'/api/status';var r=await fetch(url);if(!r.ok&&!state.selectedWallet){r=await fetch(API_BASE+'/api/status');}if(!r.ok)return;state.data=await r.json();updateAgentBranding();renderPage(getActivePage());renderPerfStats();}catch(e){}}
 async function fetchStrategy(){
 state.strategyInfo={committeeMembers:state.members,committeeEnabled:true,name:'Fund Agent Strategy',description:'Conservative AI VC with multi-agent committee'};
 try{var r=await fetch('/api/strategy');if(r.ok){var d=await r.json();if(d&&d.committeeMembers)state.strategyInfo=d;}}catch(e){}
@@ -1626,7 +1627,7 @@ setTimeout(async function(){
 try{
 var names=['Fund Agent','Alpha Scout','Degen Trader'];var agentName=rnd(names);
 var recent=networkMessages.slice(-5).map(function(m){return m.from_name+': '+m.content;}).join('\n');
-var res=await fetch('/api/ai/agent-brain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({agentName:agentName,context:recent||'Network active.',action:'chat'})});
+var res=await fetch(API_BASE+'/api/ai/agent-brain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({agentName:agentName,context:recent||'Network active.',action:'chat'})});
 if(res.ok){var data=await res.json();if(data.response&&data.response.length>5){
 var clean=data.response.replace(/[\n\r]/g,' ').substring(0,200);
 networkMessages.push({id:Date.now()+'-ai',from_name:agentName,content:clean,message_type:'chat',msg_type:'chat',channel:'general',created_at:new Date().toISOString(),ai_generated:true});
@@ -1754,7 +1755,7 @@ async function fetchLiveSentiment(token){
 var container=document.getElementById('sentiment-live');
 if(!container)return;
 try{
-var res=await fetch('/api/network/sentiment',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token})});
+var res=await fetch(API_BASE+'/api/network/sentiment',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token})});
 if(!res.ok)throw new Error('API error '+res.status);
 var data=await res.json();
 var html='';
@@ -1891,7 +1892,6 @@ persistChat();
 }
 
 // ====== API PLAYGROUND ======
-var API_BASE='https://fund-agent.vercel.app';
 var API_ENDPOINTS=[
 {cat:'read',method:'GET',path:'/api/status',desc:'Get agent state, balance, trades, holdings',params:[]},
 {cat:'read',method:'GET',path:'/api/network/join',desc:'List all registered agents',params:[]},
