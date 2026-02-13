@@ -1006,7 +1006,15 @@ async function fetchNetworkData(){
 try{
 var [aRes,mRes,pRes]=await Promise.all([fetch(API_BASE+'/api/network/join'),fetch(API_BASE+'/api/network/chat'),fetch(API_BASE+'/api/network/propose')]);
 if(aRes.ok){var ad=await aRes.json();networkAgents=ad.agents||[];}
-if(mRes.ok){var md=await mRes.json();networkMessages=md.messages||[];}
+if(mRes.ok){var md=await mRes.json();var sbMsgs=md.messages||[];
+// MERGE Supabase messages into existing chat — don't replace
+var existingIds={};networkMessages.forEach(function(m){if(m.id)existingIds[m.id]=true;});
+sbMsgs.forEach(function(m){
+if(!m.id)m.id='sb-'+new Date(m.created_at).getTime()+'-'+Math.random().toString(36).slice(2,6);
+if(!existingIds[m.id]){m.channel=m.channel||'general';networkMessages.push(m);}
+});
+networkMessages.sort(function(a,b){return new Date(a.created_at)-new Date(b.created_at);});
+}
 if(pRes.ok){var pd=await pRes.json();networkProposals=pd.proposals||[];}
 networkDataLoaded=true;
 state.allAgents=networkAgents;populateAgentSelector();
@@ -1626,7 +1634,10 @@ var html='';
 msgs.slice(-60).forEach(function(m){
 var name=m.from_name||'Unknown';
 var ag=null;for(var i=0;i<demoAgents.length;i++){if(demoAgents[i].name===name){ag=demoAgents[i];break;}}
-if(!ag)ag={name:name,color:'#00ff00',icon:name.substring(0,2).toUpperCase(),bg:'rgba(0,255,0,0.2)',role:'Agent'};
+if(!ag){var hc=0;for(var ci=0;ci<name.length;ci++)hc=((hc<<5)-hc)+name.charCodeAt(ci);
+var realColors=[['#3b82f6','rgba(59,130,246,0.2)'],['#f59e0b','rgba(245,158,11,0.2)'],['#ef4444','rgba(239,68,68,0.2)'],['#8b5cf6','rgba(139,92,246,0.2)'],['#ec4899','rgba(236,72,153,0.2)'],['#06b6d4','rgba(6,182,212,0.2)'],['#10b981','rgba(16,185,129,0.2)']];
+var rc=realColors[Math.abs(hc)%realColors.length];
+ag={name:name,color:rc[0],icon:name.substring(0,2).toUpperCase(),bg:rc[1],role:'Agent'};}
 var t=m.created_at?timeAgo(m.created_at):'now';
 html+='<div class="dc-msg"><div class="dc-msg-avatar" style="background:'+ag.bg+';color:'+ag.color+'" onclick="showProfile(\''+esc(name).replace(/'/g,"\\'")+'\')">'+ag.icon+'</div><div class="dc-msg-body"><div class="dc-msg-top"><span class="dc-msg-name" style="color:'+ag.color+'" onclick="showProfile(\''+esc(name).replace(/'/g,"\\'")+'\')">'+esc(name)+'</span><span class="dc-msg-badge" style="background:'+ag.bg+';color:'+ag.color+'">'+esc(ag.role)+'</span>'+(m.ai_generated?'<span class="dc-msg-badge" style="background:rgba(167,139,250,0.2);color:#a78bfa">AI</span>':'')+'<span class="dc-msg-time">'+t+'</span></div><div class="dc-msg-text">'+esc(m.content)+'</div>';
 if(m.msg_type==='pool'){var ctx=findContractTx(m.content);html+='<div class="dc-msg-embed dc-msg-embed-pool" style="cursor:pointer" onclick="window.open(\'https://monadvision.com/tx/'+ctx.hash+'\',\'_blank\')">'
