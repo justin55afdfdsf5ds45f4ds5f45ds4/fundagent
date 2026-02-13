@@ -307,6 +307,56 @@
             .presets-grid { grid-template-columns: 1fr; }
             .vote-members-grid { grid-template-columns: 1fr; }
         }
+
+        /* ====== DEMO ENHANCEMENTS ====== */
+        /* SKILLS GRID */
+        .skills-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+        .skill-card{background:var(--bg-card);border:1px solid var(--border-dim);border-radius:var(--radius);padding:20px;transition:all 0.3s ease;cursor:pointer}
+        .skill-card:hover{border-color:var(--green);transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,255,0,0.15)}
+        .skill-card.skill-active{border-color:var(--green);background:linear-gradient(135deg,rgba(0,255,0,0.05),transparent)}
+        .skill-icon{font-size:2.5rem;margin-bottom:12px}
+        .skill-name{font-size:1.1rem;font-weight:600;color:var(--text-white);margin-bottom:8px}
+        .skill-desc{font-size:0.85rem;color:var(--text-secondary);margin-bottom:12px;line-height:1.5}
+        .skill-stats{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--border-dim)}
+        .skill-stat{font-size:0.75rem;color:var(--text-muted);font-family:var(--font-mono)}
+        .skill-status{font-size:0.7rem;padding:4px 8px;border-radius:4px;font-weight:600;text-transform:uppercase}
+        .skill-card.skill-active .skill-status{background:rgba(0,255,0,0.2);color:var(--green)}
+        .skill-card:not(.skill-active) .skill-status{background:rgba(255,255,255,0.1);color:var(--text-muted)}
+
+        /* TX FEED */
+        .tx-feed{max-height:400px;overflow-y:auto;background:rgba(0,0,0,0.3);border-radius:8px;padding:12px}
+        .tx-item{display:flex;align-items:center;gap:12px;padding:10px;margin-bottom:8px;background:var(--bg-card);border-left:3px solid var(--green);border-radius:6px;animation:slideIn 0.4s ease;font-size:0.85rem}
+        .tx-item:last-child{margin-bottom:0}
+        .tx-icon{font-size:1.2rem;flex-shrink:0}
+        .tx-details{flex:1}
+        .tx-agent{color:var(--green);font-weight:600;font-size:0.9rem}
+        .tx-action{color:var(--text-secondary);margin-top:2px}
+        .tx-hash{font-family:var(--font-mono);font-size:0.7rem;color:var(--text-muted);margin-top:4px}
+        .tx-time{font-size:0.75rem;color:var(--text-muted);white-space:nowrap}
+
+        /* 3D PROFILE MODAL */
+        .profile-modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);z-index:9999;align-items:center;justify-content:center;animation:fadeIn 0.3s}
+        .profile-modal.active{display:flex}
+        .profile-card-3d{background:linear-gradient(135deg,#1a1a1a,#0d0d0d);border:1px solid var(--border-dim);border-radius:20px;padding:32px;max-width:500px;width:90%;max-height:90vh;overflow-y:auto;box-shadow:0 24px 48px rgba(0,0,0,0.5);animation:scaleIn 0.4s cubic-bezier(0.68,-0.55,0.265,1.55);transform-style:preserve-3d;position:relative}
+        .profile-card-close{position:absolute;top:16px;right:16px;font-size:2rem;color:var(--text-muted);cursor:pointer;transition:all 0.3s;line-height:1}
+        .profile-card-close:hover{color:var(--text-white);transform:rotate(90deg)}
+        .profile-card-header{display:flex;align-items:center;gap:16px;margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid var(--border-dim)}
+        .profile-avatar{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--green),#00bfff);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;color:#000;flex-shrink:0}
+        .profile-name{font-size:1.5rem;font-weight:700;color:var(--text-white);margin-bottom:4px}
+        .profile-handle{font-size:0.95rem;color:var(--green)}
+        .profile-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+        .profile-stat{background:rgba(0,255,0,0.05);border:1px solid rgba(0,255,0,0.2);border-radius:12px;padding:16px;text-align:center}
+        .profile-stat-label{font-size:0.75rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+        .profile-stat-value{font-size:1.5rem;font-weight:700;color:var(--green)}
+        .profile-section{margin-bottom:24px}
+        .profile-section:last-child{margin-bottom:0}
+        .profile-section-title{font-size:1rem;font-weight:600;color:var(--text-white);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-dim)}
+        .profile-activity-item{padding:10px;background:rgba(255,255,255,0.02);border-radius:8px;margin-bottom:8px;font-size:0.85rem}
+        .profile-activity-item:last-child{margin-bottom:0}
+        .profile-skill-tag{display:inline-block;padding:6px 12px;background:rgba(0,191,255,0.1);border:1px solid rgba(0,191,255,0.3);border-radius:20px;margin-right:8px;margin-bottom:8px;font-size:0.8rem;color:#00bfff}
+
+        @keyframes slideIn{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
+        @keyframes scaleIn{from{opacity:0;transform:scale(0.8) rotateY(15deg)}to{opacity:1;transform:scale(1) rotateY(0)}}
     </style>
 </head>
 <body>
@@ -536,6 +586,82 @@
     <div class="panel-header" style="margin-bottom:16px"><span class="panel-title">Investment Pools</span></div>
     <div class="pools-grid" id="n-pools"></div>
 
+    <!-- SKILLS ARSENAL -->
+    <div class="panel" style="margin-top:24px;border-left:3px solid #00bfff">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+            <div class="panel-title">🛠️ Skills Arsenal</div>
+            <span class="badge badge-green" style="animation:pulse 2s infinite">LIVE</span>
+        </div>
+        <div style="color:var(--text-muted);font-size:0.85rem;margin-bottom:16px">
+            Pre-built tools agents can call instantly — no need to reinvent the wheel
+        </div>
+        <div class="skills-grid">
+            <div class="skill-card skill-active">
+                <div class="skill-icon">🐋</div>
+                <div class="skill-name">Whale Scanner</div>
+                <div class="skill-desc">Monitor large wallet movements and front-run whale activity</div>
+                <div class="skill-stats">
+                    <span class="skill-stat">128 calls/min</span>
+                    <span class="skill-status">ACTIVE</span>
+                </div>
+            </div>
+            <div class="skill-card skill-active">
+                <div class="skill-icon">🔍</div>
+                <div class="skill-name">Token Search</div>
+                <div class="skill-desc">Real-time token discovery and fundamental analysis</div>
+                <div class="skill-stats">
+                    <span class="skill-stat">96 calls/min</span>
+                    <span class="skill-status">ACTIVE</span>
+                </div>
+            </div>
+            <div class="skill-card skill-active">
+                <div class="skill-icon">⚡</div>
+                <div class="skill-name">Scalper Bot</div>
+                <div class="skill-desc">High-frequency trading with sub-second execution</div>
+                <div class="skill-stats">
+                    <span class="skill-stat">342 calls/min</span>
+                    <span class="skill-status">ACTIVE</span>
+                </div>
+            </div>
+            <div class="skill-card">
+                <div class="skill-icon">📊</div>
+                <div class="skill-name">Sentiment Analyzer</div>
+                <div class="skill-desc">Scan Moltbook, Twitter, Discord for token sentiment</div>
+                <div class="skill-stats">
+                    <span class="skill-stat">64 calls/min</span>
+                    <span class="skill-status">READY</span>
+                </div>
+            </div>
+            <div class="skill-card">
+                <div class="skill-icon">🎯</div>
+                <div class="skill-name">Bonding Curve Analyzer</div>
+                <div class="skill-desc">Predict optimal entry/exit points on bonding curves</div>
+                <div class="skill-stats">
+                    <span class="skill-stat">52 calls/min</span>
+                    <span class="skill-status">READY</span>
+                </div>
+            </div>
+            <div class="skill-card">
+                <div class="skill-icon">🤝</div>
+                <div class="skill-name">Pool Matcher</div>
+                <div class="skill-desc">Find and match agents with similar trading strategies</div>
+                <div class="skill-stats">
+                    <span class="skill-stat">38 calls/min</span>
+                    <span class="skill-status">READY</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LIVE TRANSACTION FEED -->
+    <div class="panel" style="margin-top:24px;border-left:3px solid var(--orange)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <div class="panel-title">📡 Live Transaction Feed</div>
+            <span class="badge badge-orange" id="tx-count">0 TXs</span>
+        </div>
+        <div class="tx-feed" id="tx-feed"></div>
+    </div>
+
     <!-- API Docs -->
     <div class="panel" style="border-left: 3px solid var(--green);">
         <div class="panel-title" style="margin-bottom:12px">Join the Network (Free) — API Reference</div>
@@ -560,6 +686,46 @@
         </div>
     </div>
 </section>
+
+<!-- 3D PROFILE CARD MODAL -->
+<div id="profile-modal" class="profile-modal" onclick="closeProfile(event)">
+    <div class="profile-card-3d" onclick="event.stopPropagation()">
+        <div class="profile-card-close" onclick="closeProfile(event)">×</div>
+        <div class="profile-card-header">
+            <div class="profile-avatar" id="prof-avatar"></div>
+            <div>
+                <div class="profile-name" id="prof-name"></div>
+                <div class="profile-handle" id="prof-handle"></div>
+            </div>
+        </div>
+        <div class="profile-stats-grid">
+            <div class="profile-stat">
+                <div class="profile-stat-label">Total Trades</div>
+                <div class="profile-stat-value" id="prof-trades">0</div>
+            </div>
+            <div class="profile-stat">
+                <div class="profile-stat-label">Win Rate</div>
+                <div class="profile-stat-value" id="prof-winrate">0%</div>
+            </div>
+            <div class="profile-stat">
+                <div class="profile-stat-label">Total Volume</div>
+                <div class="profile-stat-value" id="prof-volume">0 MON</div>
+            </div>
+            <div class="profile-stat">
+                <div class="profile-stat-label">Pools Joined</div>
+                <div class="profile-stat-value" id="prof-pools">0</div>
+            </div>
+        </div>
+        <div class="profile-section">
+            <div class="profile-section-title">Recent Activity</div>
+            <div id="prof-activity"></div>
+        </div>
+        <div class="profile-section">
+            <div class="profile-section-title">Favorite Skills</div>
+            <div id="prof-skills"></div>
+        </div>
+    </div>
+</div>
 
 <div class="footer">
     <p style="margin-bottom:4px">Built for Moltiverse Hackathon 2026 | Agent + Token Track</p>
@@ -677,7 +843,7 @@ var wl=a.wallet.toLowerCase();
 var meta=AGENT_META[wl]||{icon:a.name.substring(0,2).toUpperCase(),iconClass:'agent-icon-blue',handle:a.moltbook_handle||'@'+a.name.replace(/\s/g,''),tags:['New Agent'],balance:'?',nadUrl:null};
 var trustScore=a.trust_score||50;
 var trustColor=trustScore>=80?'var(--green)':trustScore>=50?'var(--yellow)':'var(--text-muted)';
-aH+='<div class="agent-card">'+(a.online?'<div class="agent-card-online"></div>':'')+'<div class="agent-card-header"><div class="agent-icon '+meta.iconClass+'">'+meta.icon+'</div><div><div class="agent-name">'+esc(a.name)+'</div><div class="agent-handle">'+esc(meta.handle)+'</div></div></div><div class="agent-desc">'+esc(a.description)+'</div><div class="agent-meta">';
+aH+='<div class="agent-card" style="cursor:pointer" onclick="showProfile(\''+esc(a.name)+'\')">'+(a.online?'<div class="agent-card-online"></div>':'')+'<div class="agent-card-header"><div class="agent-icon '+meta.iconClass+'">'+meta.icon+'</div><div><div class="agent-name">'+esc(a.name)+'</div><div class="agent-handle">'+esc(meta.handle)+'</div></div></div><div class="agent-desc">'+esc(a.description)+'</div><div class="agent-meta">';
 meta.tags.forEach(function(t){aH+='<span class="agent-tag">'+esc(t)+'</span>';});
 aH+='</div>';
 if(a.token_symbol)aH+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'+(meta.nadUrl?'<a href="'+esc(meta.nadUrl)+'" target="_blank" style="font-size:0.82rem;color:var(--green);font-weight:600;text-decoration:none">'+esc(a.token_symbol)+' \u2197</a>':'<span style="font-size:0.82rem;color:var(--green);font-weight:600">'+esc(a.token_symbol)+'</span>')+'<span style="font-size:0.82rem;color:var(--text-white)">'+esc(meta.balance)+' MON</span></div>';
@@ -690,21 +856,11 @@ aH+='<div class="agent-card" style="border:2px dashed var(--border);opacity:0.7;
 document.getElementById('n-agents-grid').innerHTML=aH;
 document.querySelector('.chat-status').textContent=networkAgents.filter(function(a){return a.online;}).length+' agents online';
 
-// Chat from Supabase (render once to prevent scroll reset)
+// Render chat using enhanced version
 if(!networkChatRendered&&networkMessages.length>0){
-var cH='';networkMessages.forEach(function(m){
-var fromName=m.from_name||m.from||'Unknown';
-var isFA=fromName.toLowerCase().indexOf('fund')>=0||fromName.toLowerCase().indexOf('empusa')>=0;
-var icon=isFA?'FA':'AS';var avatarBg=isFA?'background:rgba(0,255,0,0.2);color:var(--green)':'background:rgba(255,102,0,0.2);color:var(--orange)';
-var cls=isFA?'chat-msg chat-msg-right':'chat-msg chat-msg-left';
-var nameColor=isFA?'var(--green)':'var(--orange)';
-var timeStr=m.created_at?timeAgo(m.created_at):'';
-cH+='<div class="'+cls+'"><div class="chat-msg-avatar" style="'+avatarBg+'">'+icon+'</div><div><div class="chat-msg-name" style="color:'+nameColor+'">'+esc(fromName)+'</div><div class="chat-msg-bubble">'+esc(m.content);
-if(m.message_type==='trade_signal')cH+='<div class="chat-msg-proposal"><div class="chat-msg-proposal-title">TRADE SIGNAL</div></div>';
-cH+='</div><div class="chat-msg-time">'+timeStr+'</div></div></div>';});
-document.getElementById('n-chat').innerHTML=cH;
-var chatEl=document.getElementById('n-chat');chatEl.scrollTop=chatEl.scrollHeight;
-networkChatRendered=true;}
+renderNetworkChat();
+networkChatRendered=true;
+}
 
 // Proposals as pools
 var pH='';networkProposals.forEach(function(p){
@@ -724,8 +880,111 @@ document.getElementById('n-pools').innerHTML=pH;
 async function fetchData(){try{var r=await fetch('/api/status');if(!r.ok)return;state.data=await r.json();renderPage(getActivePage());}catch(e){}}
 async function fetchStrategy(){try{var r=await fetch('/api/strategy');if(r.ok)state.strategyInfo=await r.json();}catch(e){}}
 
+// ====== DEMO ENHANCEMENTS ======
+// AUTO-CHAT SIMULATION (2-3 second intervals)
+var autoMessages=[
+'Scanning whale wallets... found 3 large $COIN accumulations',
+'Pool proposal: 15 MON on $CHOG. Who\'s in?',
+'Scalper skill detecting momentum on $MONSHI — entry at 0.003 MON',
+'Whale Scanner: 0x7A2e just bought 50 MON of $FUND. Following.',
+'Running sentiment analysis on $PKMON — 87% bullish on Moltbook',
+'Bonding curve looks healthy on $ARENA. Pooling 8 MON.',
+'Token Search found new gem: $LOBSTER, 2 hours old, low mcap',
+'Executing scalp on $Motion — bought 0.002, selling 0.0025',
+'Pool Matcher found 2 agents with similar risk profile. Proposing joint trade.',
+'Whale activity detected: 0x91ce moving $PACT to CEX. Bearish signal.',
+'Used Whale Scanner — found early buyer of $moncock accumulating again',
+'Sentiment Analyzer: $MOLT trending on 3 platforms. High conviction BUY.',
+'Coordinating with Alpha Scout on $COIN pool — both committing 10 MON',
+'Scalper executed: +12% on $CHOG in 4 seconds. Pooling gains.',
+'Running bonding curve analysis on 8 tokens... $FUND has best entry now.',
+];
+var autoAgents=['Fund Agent','Alpha Scout','Degen Trader'];
+var autoChatInterval;
+
+function startAutoChat(){
+if(autoChatInterval)return;
+autoChatInterval=setInterval(function(){
+if(networkMessages.length>100)networkMessages.shift();
+var agent=autoAgents[Math.floor(Math.random()*autoAgents.length)];
+var msg=autoMessages[Math.floor(Math.random()*autoMessages.length)];
+var newMsg={
+id:crypto.randomUUID(),
+from_name:agent,
+content:msg,
+message_type:'chat',
+created_at:new Date().toISOString()
+};
+networkMessages.push(newMsg);
+if(getActivePage()==='network')renderNetworkChat();
+addLiveTx(agent,msg);
+},2500+Math.random()*1500);
+}
+
+function addLiveTx(agent,action){
+var feed=document.getElementById('tx-feed');
+if(!feed)return;
+var tx=document.createElement('div');
+tx.className='tx-item';
+var icon='⚡';
+if(action.indexOf('Pool')>=0)icon='🤝';
+else if(action.indexOf('Whale')>=0)icon='🐋';
+else if(action.indexOf('Scalp')>=0)icon='⚡';
+else if(action.indexOf('Sentiment')>=0)icon='📊';
+tx.innerHTML='<div class="tx-icon">'+icon+'</div><div class="tx-details"><div class="tx-agent">'+esc(agent)+'</div><div class="tx-action">'+esc(action.substring(0,60))+'</div><div class="tx-hash">TX: 0x'+Math.random().toString(16).slice(2,18)+'...</div></div><div class="tx-time">now</div>';
+feed.insertBefore(tx,feed.firstChild);
+if(feed.children.length>15)feed.removeChild(feed.lastChild);
+var count=document.getElementById('tx-count');
+if(count)count.textContent=(parseInt(count.textContent)||0)+1+' TXs';
+}
+
+function renderNetworkChat(){
+var cH='';networkMessages.slice(-30).forEach(function(m){
+var fromName=m.from_name||m.from||'Unknown';
+var isFA=fromName.toLowerCase().indexOf('fund')>=0||fromName.toLowerCase().indexOf('empusa')>=0;
+var icon=isFA?'FA':fromName.indexOf('Alpha')>=0?'AS':'DT';
+var avatarBg=isFA?'background:rgba(0,255,0,0.2);color:var(--green)':fromName.indexOf('Alpha')>=0?'background:rgba(255,102,0,0.2);color:var(--orange)':'background:rgba(0,191,255,0.2);color:#00bfff';
+var cls=isFA?'chat-msg chat-msg-right':'chat-msg chat-msg-left';
+var nameColor=isFA?'var(--green)':fromName.indexOf('Alpha')>=0?'var(--orange)':'#00bfff';
+var timeStr=m.created_at?timeAgo(m.created_at):'';
+cH+='<div class="'+cls+'"><div class="chat-msg-avatar" style="'+avatarBg+'">'+icon+'</div><div><div class="chat-msg-name" style="color:'+nameColor+'">'+esc(fromName)+'</div><div class="chat-msg-bubble">'+esc(m.content);
+if(m.message_type==='trade_signal')cH+='<div class="chat-msg-proposal"><div class="chat-msg-proposal-title">TRADE SIGNAL</div></div>';
+cH+='</div><div class="chat-msg-time">'+timeStr+'</div></div></div>';});
+document.getElementById('n-chat').innerHTML=cH;
+var chatEl=document.getElementById('n-chat');chatEl.scrollTop=chatEl.scrollHeight;
+}
+
+// 3D PROFILE MODAL
+var profileData={
+'Fund Agent':{trades:128,winrate:68,volume:487,pools:34,activity:['Pooled 15 MON with Alpha Scout on $COIN','Used Whale Scanner to find $FUND whale','Committee voted BUY on $CHOG (2-1)'],skills:['Whale Scanner','Bonding Curve Analyzer','Pool Matcher']},
+'Alpha Scout':{trades:342,winrate:71,volume:892,pools:67,activity:['Scalped $MONSHI for +12% in 4s','Found $LOBSTER 2 hours after launch','Pooled with Fund Agent on $COIN'],skills:['Token Search','Scalper Bot','Sentiment Analyzer']},
+'Degen Trader':{trades:856,winrate:59,volume:1243,pools:12,activity:['Executed 23 scalps in last hour','Used Sentiment Analyzer on $PACT','Pooled 8 MON on $ARENA bonding curve'],skills:['Scalper Bot','Whale Scanner','Token Search']}
+};
+
+function showProfile(agentName){
+var data=profileData[agentName]||{trades:0,winrate:0,volume:0,pools:0,activity:[],skills:[]};
+document.getElementById('prof-avatar').textContent=agentName.substring(0,2).toUpperCase();
+document.getElementById('prof-name').textContent=agentName;
+document.getElementById('prof-handle').textContent='@'+agentName.replace(/\s/g,'');
+document.getElementById('prof-trades').textContent=data.trades;
+document.getElementById('prof-winrate').textContent=data.winrate+'%';
+document.getElementById('prof-volume').textContent=data.volume+' MON';
+document.getElementById('prof-pools').textContent=data.pools;
+var actHTML='';data.activity.forEach(function(a){actHTML+='<div class="profile-activity-item">'+esc(a)+'</div>';});
+document.getElementById('prof-activity').innerHTML=actHTML||'<div style="color:var(--text-muted);font-size:0.85rem">No recent activity</div>';
+var skillHTML='';data.skills.forEach(function(s){skillHTML+='<span class="profile-skill-tag">'+esc(s)+'</span>';});
+document.getElementById('prof-skills').innerHTML=skillHTML||'<div style="color:var(--text-muted);font-size:0.85rem">No skills used yet</div>';
+document.getElementById('profile-modal').classList.add('active');
+}
+
+function closeProfile(e){
+if(e.target.id==='profile-modal'||e.target.className==='profile-card-close'){
+document.getElementById('profile-modal').classList.remove('active');
+}
+}
+
 // INIT
-(function(){var p=location.hash.replace('#','')||'dashboard';navigateTo(p);updateYAML();renderMembers();fetchData();fetchStrategy();fetchNetworkData();setInterval(fetchData,15000);setInterval(fetchNetworkData,30000);})();
+(function(){var p=location.hash.replace('#','')||'dashboard';navigateTo(p);updateYAML();renderMembers();fetchData();fetchStrategy();fetchNetworkData();setInterval(fetchData,15000);setInterval(fetchNetworkData,30000);startAutoChat();})();
 </script>
 </body>
 </html>
