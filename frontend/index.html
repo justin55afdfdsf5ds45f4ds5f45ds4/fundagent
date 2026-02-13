@@ -50,6 +50,11 @@
         .nav-mode-BEAR { background: var(--orange); color: #000; }
         .nav-mode-CRISIS { background: var(--red); color: #fff; }
         @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .agent-select { background: transparent; border: 1px solid var(--border-dim); color: var(--text-secondary); font-family: var(--font-mono); font-size: 0.72rem; padding: 3px 8px; border-radius: 6px; cursor: pointer; max-width: 160px; outline: none; }
+        .agent-select:hover { border-color: var(--green); }
+        .agent-select option { background: #111; color: var(--text-white); }
+        .nav-back { font-size: 0.68rem; color: var(--text-muted); cursor: pointer; text-decoration: none; padding: 2px 8px; border: 1px solid var(--border-dim); border-radius: 4px; transition: all 0.2s; }
+        .nav-back:hover { color: var(--green); border-color: var(--green); }
 
         /* ====== MAIN ====== */
         .main { max-width: 1200px; margin: 0 auto; padding: 24px; }
@@ -481,7 +486,7 @@
 <body>
 
 <nav class="nav">
-    <div class="nav-brand"><span class="nav-logo">FUND AGENT</span></div>
+    <div class="nav-brand"><span class="nav-logo" id="nav-agent-name">FUND AGENT</span><select id="agent-selector" class="agent-select" onchange="switchAgent(this.value)" title="Switch agent"><option value="">Fund Agent</option></select><a id="nav-back-btn" class="nav-back" style="display:none" onclick="switchAgent('')">&larr; Fund Agent</a></div>
     <div class="nav-links">
         <a class="nav-link active" data-page="dashboard" onclick="navigateTo('dashboard')">Dashboard</a>
         <a class="nav-link" data-page="committee" onclick="navigateTo('committee')">Committee</a>
@@ -502,7 +507,7 @@
 <section id="page-dashboard" class="page active">
     <div class="page-header">
         <div class="page-title">Dashboard</div>
-        <div class="page-subtitle">Autonomous AI Venture Capitalist on Monad</div>
+        <div class="page-subtitle" id="d-subtitle">Autonomous AI Venture Capitalist on Monad</div>
     </div>
     <!-- Skeleton stats -->
     <div class="stats-grid" id="d-stats-skel">
@@ -899,7 +904,7 @@ console.<span style="color:#61afef">log</span>(agentResponse);
 </div>
 
 <script>
-var state={data:null,strategyInfo:null,activityPage:0,activityFilter:'all',committeePage:0,committeeFilter:'all',members:[{name:'The Degen',persona:'Aggressive degen who YOLOs into everything',weight:1},{name:'The Conservative',persona:'Risk-averse value investor who demands fundamentals',weight:1},{name:'The Contrarian',persona:'Contrarian trader who fades popular opinion',weight:1}]};
+var state={data:null,strategyInfo:null,activityPage:0,activityFilter:'all',committeePage:0,committeeFilter:'all',selectedWallet:'',allAgents:[],members:[{name:'The Degen',persona:'Aggressive degen who YOLOs into everything',weight:1},{name:'The Conservative',persona:'Risk-averse value investor who demands fundamentals',weight:1},{name:'The Contrarian',persona:'Contrarian trader who fades popular opinion',weight:1}]};
 var PAGES=['dashboard','committee','strategy','activity','network','api'];
 var PAGE_SIZE=15,COMMITTEE_PAGE_SIZE=10;
 var PRESETS={'default':{name:'FUND AGENT Default',desc:'Original FUND AGENT strategy \u2014 balanced degen approach',buyInt:10800000,sellInt:18000000,amount:1,maxTrades:30,conf:0.3,bias:60,slip1:15,slip2:20,postInt:1800000,bull:5,neutral:2},'degen':{name:'Maximum Degen',desc:'YOLO mode \u2014 high frequency, high risk, buy everything',buyInt:3600000,sellInt:7200000,amount:2,maxTrades:50,conf:0.2,bias:80,slip1:25,slip2:30,postInt:600000,bull:10,neutral:5},'conservative':{name:'Conservative VC',desc:'Patient capital deployment with high conviction threshold',buyInt:21600000,sellInt:43200000,amount:0.5,maxTrades:20,conf:0.7,bias:30,slip1:10,slip2:15,postInt:3600000,bull:3,neutral:1},'diamond-hands':{name:'Diamond Hands',desc:'Buy and hold \u2014 rarely sell, ride the wave',buyInt:14400000,sellInt:86400000,amount:1.5,maxTrades:25,conf:0.5,bias:70,slip1:15,slip2:20,postInt:2400000,bull:8,neutral:4}};
@@ -1003,6 +1008,7 @@ if(aRes.ok){var ad=await aRes.json();networkAgents=ad.agents||[];}
 if(mRes.ok){var md=await mRes.json();networkMessages=md.messages||[];}
 if(pRes.ok){var pd=await pRes.json();networkProposals=pd.proposals||[];}
 networkDataLoaded=true;
+state.allAgents=networkAgents;populateAgentSelector();
 if(getActivePage()==='network')renderNetwork();
 }catch(e){console.error('Network fetch error',e);}
 }
@@ -1015,7 +1021,7 @@ var aH='<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px">';
 networkAgents.forEach(function(a){
 var wl=a.wallet.toLowerCase();
 var meta=AGENT_META[wl]||{icon:a.name.substring(0,2).toUpperCase(),iconClass:'agent-icon-green'};
-aH+='<div style="display:flex;align-items:center;gap:8px;background:var(--bg-card);border:1px solid var(--border-dim);border-radius:10px;padding:6px 12px 6px 6px;cursor:pointer;transition:all 0.2s" onclick="showProfile(\''+esc(a.name).replace(/'/g,"\\'")+'\')" onmouseover="this.style.borderColor=\'var(--green)\'" onmouseout="this.style.borderColor=\'var(--border-dim)\'">'
+aH+='<div style="display:flex;align-items:center;gap:8px;background:var(--bg-card);border:1px solid var(--border-dim);border-radius:10px;padding:6px 12px 6px 6px;cursor:pointer;transition:all 0.2s" onclick="switchAgent(\''+esc(a.wallet)+'\')" onmouseover="this.style.borderColor=\'var(--green)\'" onmouseout="this.style.borderColor=\'var(--border-dim)\'">'
 +'<div style="width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;background:rgba(0,255,0,0.15);color:var(--green)">'+meta.icon+'</div>'
 +'<div><div style="font-size:0.78rem;font-weight:600;color:var(--text-white)">'+esc(a.name)+'</div>'
 +'<div style="font-size:0.62rem;color:var(--text-muted)">'+esc(a.wallet.substring(0,10))+'...</div></div>'
@@ -1051,7 +1057,7 @@ networkChatRendered=true;
 }
 
 // DATA
-async function fetchData(){try{var r=await fetch('/api/status');if(!r.ok)return;state.data=await r.json();renderPage(getActivePage());renderPerfStats();}catch(e){}}
+async function fetchData(){try{var url='/api/status';if(state.selectedWallet)url+='?wallet='+encodeURIComponent(state.selectedWallet);var r=await fetch(url);if(!r.ok)return;state.data=await r.json();updateAgentBranding();renderPage(getActivePage());renderPerfStats();}catch(e){}}
 async function fetchStrategy(){
 state.strategyInfo={committeeMembers:state.members,committeeEnabled:true,name:'Fund Agent Strategy',description:'Conservative AI VC with multi-agent committee'};
 try{var r=await fetch('/api/strategy');if(r.ok){var d=await r.json();if(d&&d.committeeMembers)state.strategyInfo=d;}}catch(e){}
@@ -1836,8 +1842,16 @@ card.innerHTML='<span class="prof-close" onclick="document.getElementById(\'prof
 +'<div class="prof-st"><div class="prof-st-val">'+winrate+'%</div><div class="prof-st-lbl">Win Rate</div></div>'
 +'<div class="prof-st"><div class="prof-st-val">'+volume+'</div><div class="prof-st-lbl">MON Vol</div></div>'
 +'</div>'
-+'<div class="prof-roles">'+skills.map(function(s){return'<span class="prof-role">'+esc(s)+'</span>';}).join('')+'</div>'
-+'</div>';
++'<div class="prof-roles">'+skills.map(function(s){return'<span class="prof-role">'+esc(s)+'</span>';}).join('')+'</div>';
+// Find wallet for this agent
+var agWallet='';
+networkAgents.forEach(function(na){if(na.name===agentName)agWallet=na.wallet;});
+if(!agWallet){var mkeys=Object.keys(AGENT_META);for(var mi=0;mi<mkeys.length;mi++){var mk=AGENT_META[mkeys[mi]];if(mk.handle&&mk.handle.replace('@','').toLowerCase()===agentName.replace(/\s/g,'').toLowerCase()){agWallet=mkeys[mi];break;}}}
+if(agWallet){
+card.innerHTML+='<div style="padding:0 24px 20px;text-align:center"><button onclick="document.getElementById(\'prof-overlay\').classList.remove(\'open\');switchAgent(\''+esc(agWallet)+'\')" style="background:var(--green);color:#000;border:none;padding:8px 24px;border-radius:8px;font-family:var(--font-mono);font-weight:700;font-size:0.85rem;cursor:pointer;transition:all 0.2s">View Dashboard &rarr;</button></div>';
+}else{
+card.innerHTML+='</div>';
+}
 document.getElementById('prof-overlay').classList.add('open');
 }catch(e){console.error('Profile error:',e);}
 }
@@ -2037,8 +2051,56 @@ document.getElementById('perf-winrate').textContent=buys+'B/'+sells+'S';
 document.getElementById('perf-onchain').textContent=trades.filter(function(t){return t.txHash;}).length;
 }
 
+// AGENT SWITCHING
+function getUrlWallet(){var p=new URLSearchParams(window.location.search);return p.get('agent')||'';}
+function setUrlWallet(w){var u=new URL(window.location.href);if(w)u.searchParams.set('agent',w);else u.searchParams.delete('agent');history.replaceState(null,'',u.toString());}
+function switchAgent(wallet){
+state.selectedWallet=wallet||'';setUrlWallet(wallet);
+state.data=null;state.activityPage=0;state.committeePage=0;
+updateAgentBranding();
+// Reset skeleton
+var skel=document.getElementById('d-stats-skel');if(skel)skel.style.display='';
+var sr=document.getElementById('d-stats-real');if(sr)sr.classList.add('skel-hidden');
+var gs=document.getElementById('d-grid-skel');if(gs)gs.style.display='';
+var gr=document.getElementById('d-grid-real');if(gr)gr.classList.add('skel-hidden');
+var as=document.getElementById('d-activity-skel');if(as)as.style.display='';
+var ar=document.getElementById('d-activity-real');if(ar)ar.classList.add('skel-hidden');
+fetchData();
+navigateTo('dashboard');
+// Highlight in selector
+var sel=document.getElementById('agent-selector');if(sel)sel.value=wallet||'';
+}
+function updateAgentBranding(){
+var d=state.data;var prof=d&&d.agentProfile?d.agentProfile:null;
+var nameEl=document.getElementById('nav-agent-name');
+var backBtn=document.getElementById('nav-back-btn');
+var subtitle=document.getElementById('d-subtitle');
+if(prof&&prof.name&&prof.name!=='Fund Agent'){
+nameEl.textContent=prof.name.toUpperCase();nameEl.style.cursor='pointer';
+backBtn.style.display='inline-block';
+if(subtitle)subtitle.textContent=prof.description||'Autonomous trading agent on Monad';
+}else{
+nameEl.textContent='FUND AGENT';nameEl.style.cursor='default';
+backBtn.style.display='none';
+if(subtitle)subtitle.textContent='Autonomous AI Venture Capitalist on Monad';
+}
+}
+function populateAgentSelector(){
+var sel=document.getElementById('agent-selector');if(!sel)return;
+var h='<option value="">Fund Agent</option>';
+state.allAgents.forEach(function(a){
+if(a.wallet&&a.wallet.toLowerCase()!=='0xb80f5979597246852d16bb3047228de095f27824'){
+h+='<option value="'+esc(a.wallet)+'">'+esc(a.name)+'</option>';
+}
+});
+sel.innerHTML=h;
+if(state.selectedWallet)sel.value=state.selectedWallet;
+}
+
 // INIT
 (function(){
+// Read ?agent= from URL
+state.selectedWallet=getUrlWallet();
 var p=location.hash.replace('#','')||'dashboard';navigateTo(p);updateYAML();renderMembers();
 // Load persisted chat, or seed fresh
 var hadPersisted=loadPersistedChat();
@@ -2047,6 +2109,11 @@ fetchData();fetchStrategy();fetchNetworkData();
 setInterval(fetchData,15000);setInterval(fetchNetworkData,30000);
 startAutoChat();startAIChat();cycleTyping();
 setTimeout(initTxFeed,1000);
+// Populate agent selector once network data loads
+var selectorInterval=setInterval(function(){
+if(networkAgents.length>0){state.allAgents=networkAgents;populateAgentSelector();clearInterval(selectorInterval);}
+},1000);
+setTimeout(function(){clearInterval(selectorInterval);},15000);
 // Skeleton → real chat after brief load
 setTimeout(function(){
 var skel=document.getElementById('dc-skeleton');
