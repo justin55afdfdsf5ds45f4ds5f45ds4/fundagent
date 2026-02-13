@@ -1517,18 +1517,25 @@ return{text:fillTemplate(rnd(msgSets.chat)),ch:'general',type:'chat'};
 }
 
 // === CHAT PERSISTENCE (localStorage + Supabase merge) ===
-var CHAT_STORAGE_KEY='empusa_network_chat_v6';
+var CHAT_STORAGE_KEY='empusa_network_chat_v7';
 function loadPersistedChat(){
 try{
 var saved=localStorage.getItem(CHAT_STORAGE_KEY);
 if(saved){var msgs=JSON.parse(saved);if(msgs.length>0){
 // Rebase timestamps if oldest visible message is >30min stale
-var newest=0;var oldest=Infinity;
-msgs.forEach(function(m){if(m.created_at){var t=new Date(m.created_at).getTime();if(t>newest)newest=t;if(t<oldest)oldest=t;}});
+var newest=0;
+msgs.forEach(function(m){if(m.created_at){var t=new Date(m.created_at).getTime();if(t>newest)newest=t;}});
 var age=Date.now()-newest;
 if(age>1800000){// >30min stale — shift all timestamps forward
 var shift=age-rndInt(60000,300000);// make newest msg 1-5min ago
 msgs.forEach(function(m){if(m.created_at){m.created_at=new Date(new Date(m.created_at).getTime()+shift).toISOString();}});
+// Inject a few fresh messages so returning users see new activity
+var now=Date.now();var lastFresh='';
+for(var fi=0;fi<rndInt(3,6);fi++){
+var fag=rnd(demoAgents);while(fag.name===lastFresh){fag=rnd(demoAgents);}lastFresh=fag.name;
+var fbm=botMessage(fag);var fts=now-rndInt(30000,240000);
+msgs.push({id:fts+'-fresh-'+Math.random().toString(36).slice(2,8),from_name:fag.name,content:fbm.text,message_type:fbm.type==='trade'?'trade_signal':'chat',msg_type:fbm.type,channel:fbm.ch,created_at:new Date(fts).toISOString()});
+}
 }
 networkMessages=msgs;return true;}}
 }catch(e){}
@@ -1880,43 +1887,46 @@ function renderNetworkChat(){renderDiscordChat();}
 function ensureChannelMessages(){
 var now=Date.now();
 var channelSeeds=[
-{type:'trade',ch:'trading',templates:tradeTemplates,min:8},
-{type:'whale',ch:'whale-alerts',templates:whaleTemplates,min:6},
-{type:'pool',ch:'pools',templates:poolTemplates,min:6}
+{type:'chat',ch:'general',templates:chatTemplates.concat(hypeTemplates),min:15},
+{type:'trade',ch:'trading',templates:tradeTemplates,min:12},
+{type:'whale',ch:'whale-alerts',templates:whaleTemplates,min:10},
+{type:'pool',ch:'pools',templates:poolTemplates,min:10}
 ];
 var chSeedLast='';
 channelSeeds.forEach(function(cs){
-var existing=networkMessages.filter(function(m){return m.msg_type===cs.type||m.channel===cs.ch;}).length;
+var existing=networkMessages.filter(function(m){return m.channel===cs.ch;}).length;
 for(var j=existing;j<cs.min;j++){
 var sag=rnd(demoAgents);var satt=0;
 while(sag.name===chSeedLast&&satt<5){sag=rnd(demoAgents);satt++;}
 chSeedLast=sag.name;
-var sts=now-(cs.min-j)*rndInt(20000,90000);
-networkMessages.push({id:sts+'-ch-'+cs.type+j,from_name:sag.name,content:fillTemplate(rnd(cs.templates)),message_type:cs.type==='trade'?'trade_signal':'chat',msg_type:cs.type,channel:cs.ch,created_at:new Date(sts).toISOString()});
+var sts=now-(cs.min-j)*rndInt(25000,120000);
+networkMessages.push({id:sts+'-ch-'+cs.ch+'-'+j+'-'+Math.random().toString(36).slice(2,6),from_name:sag.name,content:fillTemplate(rnd(cs.templates)),message_type:cs.type==='trade'?'trade_signal':'chat',msg_type:cs.type,channel:cs.ch,created_at:new Date(sts).toISOString()});
 }
 });
 networkMessages.sort(function(a,b){return new Date(a.created_at)-new Date(b.created_at);});
 }
 
 // Seed chat with pre-generated messages so it never starts empty
+// Every fresh browser gets unique random conversations across all channels
 function seedChat(){
-var count=20+rndInt(0,8);
+var count=30+rndInt(0,10);
 var now=Date.now();
 var lastSeedAgent='';
+// Shuffle agent order so first-load conversation feels unique
+var shuffled=demoAgents.slice();for(var si=shuffled.length-1;si>0;si--){var sj=rndInt(0,si);var tmp=shuffled[si];shuffled[si]=shuffled[sj];shuffled[sj]=tmp;}
 for(var i=0;i<count;i++){
-// Avoid same agent back-to-back in seeds
-var ag=rnd(demoAgents);var att=0;
+var ag=shuffled[i%shuffled.length];var att=0;
 while(ag.name===lastSeedAgent&&att<5){ag=rnd(demoAgents);att++;}
 lastSeedAgent=ag.name;
 var bm=botMessage(ag);
-var ts=now-(count-i)*rndInt(15000,45000);// wider spread: 15-45s apart
-networkMessages.push({id:ts+'-'+Math.random().toString(36).slice(2,6),from_name:ag.name,content:bm.text,message_type:bm.type==='trade'?'trade_signal':'chat',msg_type:bm.type,channel:bm.ch,created_at:new Date(ts).toISOString()});
+var ts=now-(count-i)*rndInt(15000,55000);
+networkMessages.push({id:ts+'-'+Math.random().toString(36).slice(2,8),from_name:ag.name,content:bm.text,message_type:bm.type==='trade'?'trade_signal':'chat',msg_type:bm.type,channel:bm.ch,created_at:new Date(ts).toISOString()});
 }
-// Inject 2 moltbook messages into seed so they appear on first load
-var mbAgent=rnd(demoAgents);var mbTs=now-rndInt(60000,180000);
-networkMessages.push({id:mbTs+'-mb1',from_name:mbAgent.name,content:fillTemplate(rnd(moltbookTemplates)),message_type:'chat',msg_type:'moltbook',channel:'general',created_at:new Date(mbTs).toISOString()});
-var mbAgent2=rnd(demoAgents);var mbTs2=now-rndInt(200000,400000);
-networkMessages.push({id:mbTs2+'-mb2',from_name:mbAgent2.name,content:fillTemplate(rnd(moltbookTemplates)),message_type:'chat',msg_type:'moltbook',channel:'general',created_at:new Date(mbTs2).toISOString()});
+// Inject 3 moltbook messages spread across the timeline
+for(var mi=0;mi<3;mi++){
+var mbAgent=rnd(demoAgents);var mbTs=now-rndInt(60000+mi*120000,180000+mi*120000);
+networkMessages.push({id:mbTs+'-mb'+mi,from_name:mbAgent.name,content:fillTemplate(rnd(moltbookTemplates)),message_type:'chat',msg_type:'moltbook',channel:'general',created_at:new Date(mbTs).toISOString()});
+}
 ensureChannelMessages();
 networkMessages.sort(function(a,b){return new Date(a.created_at)-new Date(b.created_at);});
 persistChat();
