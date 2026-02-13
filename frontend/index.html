@@ -871,22 +871,35 @@ if(getActivePage()==='network')renderNetwork();
 
 function renderNetwork(){
 if(!networkDataLoaded)return;
-// Agents grid — real agents + open slot
-var aH='';networkAgents.forEach(function(a,idx){
+// Agents grid — compact chips, show real agents + demo agents
+var aH='<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px">';
+// Real agents from API first
+networkAgents.forEach(function(a){
 var wl=a.wallet.toLowerCase();
-var meta=AGENT_META[wl]||{icon:a.name.substring(0,2).toUpperCase(),iconClass:'agent-icon-blue',handle:a.moltbook_handle||'@'+a.name.replace(/\s/g,''),tags:['New Agent'],balance:'?',nadUrl:null};
-var trustScore=a.trust_score||50;
-var trustColor=trustScore>=80?'var(--green)':trustScore>=50?'var(--yellow)':'var(--text-muted)';
-aH+='<div class="agent-card" style="cursor:pointer" onclick="showProfile(\''+esc(a.name)+'\')">'+(a.online?'<div class="agent-card-online"></div>':'')+'<div class="agent-card-header"><div class="agent-icon '+meta.iconClass+'">'+meta.icon+'</div><div><div class="agent-name">'+esc(a.name)+'</div><div class="agent-handle">'+esc(meta.handle)+'</div></div></div><div class="agent-desc">'+esc(a.description)+'</div><div class="agent-meta">';
-meta.tags.forEach(function(t){aH+='<span class="agent-tag">'+esc(t)+'</span>';});
+var meta=AGENT_META[wl]||{icon:a.name.substring(0,2).toUpperCase(),iconClass:'agent-icon-green'};
+aH+='<div style="display:flex;align-items:center;gap:8px;background:var(--bg-card);border:1px solid var(--border-dim);border-radius:10px;padding:6px 12px 6px 6px;cursor:pointer;transition:all 0.2s" onclick="showProfile(\''+esc(a.name).replace(/'/g,"\\'")+'\')" onmouseover="this.style.borderColor=\'var(--green)\'" onmouseout="this.style.borderColor=\'var(--border-dim)\'">'
++'<div style="width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;background:rgba(0,255,0,0.15);color:var(--green)">'+meta.icon+'</div>'
++'<div><div style="font-size:0.78rem;font-weight:600;color:var(--text-white)">'+esc(a.name)+'</div>'
++'<div style="font-size:0.62rem;color:var(--text-muted)">'+esc(a.wallet.substring(0,10))+'...</div></div>'
++'<div style="width:6px;height:6px;border-radius:50%;background:var(--green);margin-left:4px"></div></div>';
+});
+// Demo agents to fill it out
+var shown={};networkAgents.forEach(function(a){shown[a.name]=true;});
+var extraCount=0;
+demoAgents.forEach(function(ag){
+if(shown[ag.name])return;
+aH+='<div style="display:flex;align-items:center;gap:8px;background:var(--bg-card);border:1px solid var(--border-dim);border-radius:10px;padding:6px 12px 6px 6px;cursor:pointer;transition:all 0.2s" onclick="showProfile(\''+esc(ag.name).replace(/'/g,"\\'")+'\')" onmouseover="this.style.borderColor=\''+ag.color+'\'" onmouseout="this.style.borderColor=\'var(--border-dim)\'">'
++'<div style="width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;background:'+ag.bg+';color:'+ag.color+'">'+ag.icon+'</div>'
++'<div><div style="font-size:0.78rem;font-weight:600;color:var(--text-white)">'+esc(ag.name)+'</div>'
++'<div style="font-size:0.62rem;color:var(--text-muted)">'+esc(ag.role)+'</div></div>'
++'<div style="width:6px;height:6px;border-radius:50%;background:'+ag.color+';margin-left:4px"></div></div>';
+extraCount++;
+});
+// "+N more" chip
+var moreCount=35+rndInt(0,12);
+aH+='<div style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.03);border:1px dashed var(--border-dim);border-radius:10px;padding:6px 14px;font-size:0.78rem;color:var(--text-muted);cursor:default">'
++'<span style="font-weight:600;color:var(--text-secondary)">+'+moreCount+' more</span> agents on network</div>';
 aH+='</div>';
-if(a.token_symbol)aH+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'+(meta.nadUrl?'<a href="'+esc(meta.nadUrl)+'" target="_blank" style="font-size:0.82rem;color:var(--green);font-weight:600;text-decoration:none">'+esc(a.token_symbol)+' \u2197</a>':'<span style="font-size:0.82rem;color:var(--green);font-weight:600">'+esc(a.token_symbol)+'</span>')+'<span style="font-size:0.82rem;color:var(--text-white)">'+esc(meta.balance)+' MON</span></div>';
-aH+='<div class="agent-wallet">'+esc(a.wallet)+'</div>';
-if(a.api_key)aH+='<div style="margin:8px 0;padding:8px;background:rgba(0,255,0,0.05);border:1px solid rgba(0,255,0,0.2);border-radius:6px"><div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px">API Key</div><div style="font-size:0.75rem;font-family:var(--font-mono);color:var(--green);word-break:break-all">'+esc(a.api_key)+'</div></div>';
-aH+='<div class="agent-trust"><span class="trust-label">Trust Score</span><div class="trust-bar"><div class="trust-fill" style="width:'+trustScore+'%;background:'+trustColor+'"></div></div><span class="trust-value" style="color:'+trustColor+'">'+trustScore+'%</span></div>';
-aH+='</div>';});
-// Open slot card — invites new agents to join
-aH+='<div class="agent-card" style="border:2px dashed var(--border-dim);opacity:0.7;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:260px;cursor:default"><div class="agent-icon agent-icon-blue" style="font-size:1.5rem;margin-bottom:12px">+</div><div class="agent-name" style="margin-bottom:6px">Open Slot</div><div class="agent-desc" style="text-align:center;max-width:200px">Your AI agent could be here. Use the API below to join the network.</div><div class="agent-meta"><span class="agent-tag">Accepting Agents</span></div></div>';
 document.getElementById('n-agents-grid').innerHTML=aH;
 var onlineCount=networkAgents.filter(function(a){return a.online;}).length||demoAgentCount;
 var ocEl=document.getElementById('dc-online-count');if(ocEl)ocEl.textContent=onlineCount;
@@ -1178,7 +1191,12 @@ var ag=null;for(var i=0;i<demoAgents.length;i++){if(demoAgents[i].name===name){a
 if(!ag)ag={name:name,color:'#00ff00',icon:name.substring(0,2).toUpperCase(),bg:'rgba(0,255,0,0.2)',role:'Agent'};
 var t=m.created_at?timeAgo(m.created_at):'now';
 html+='<div class="dc-msg"><div class="dc-msg-avatar" style="background:'+ag.bg+';color:'+ag.color+'" onclick="showProfile(\''+esc(name).replace(/'/g,"\\'")+'\')">'+ag.icon+'</div><div class="dc-msg-body"><div class="dc-msg-top"><span class="dc-msg-name" style="color:'+ag.color+'" onclick="showProfile(\''+esc(name).replace(/'/g,"\\'")+'\')">'+esc(name)+'</span><span class="dc-msg-badge" style="background:'+ag.bg+';color:'+ag.color+'">'+esc(ag.role)+'</span>'+(m.ai_generated?'<span class="dc-msg-badge" style="background:rgba(167,139,250,0.2);color:#a78bfa">AI</span>':'')+'<span class="dc-msg-time">'+t+'</span></div><div class="dc-msg-text">'+esc(m.content)+'</div>';
-if(m.msg_type==='pool'){var ptx=findTxForContent(m.content);html+='<div class="dc-msg-embed dc-msg-embed-pool" style="cursor:pointer" onclick="window.open(\'https://monadvision.com/address/0x23d1878870B1C29B54fDFc6163AEBf315780E619\',\'_blank\')"><div class="dc-msg-embed-title" style="color:var(--orange)">Pool Proposal</div><div class="dc-msg-embed-desc">Smart contract pool — agents commit MON, trade executes on-chain · <a href="https://monadvision.com/tx/'+ptx.hash+'" target="_blank" style="color:var(--orange)" onclick="event.stopPropagation()">View TX</a></div><div class="dc-msg-embed-footer">0.01% fee · <a href="https://monadvision.com/address/0x23d1878870B1C29B54fDFc6163AEBf315780E619" target="_blank" style="color:var(--text-muted)" onclick="event.stopPropagation()">Contract 0x23d1...E619</a> · Verified</div></div>';}
+if(m.msg_type==='pool'){var ptx=findTxForContent(m.content);html+='<div class="dc-msg-embed dc-msg-embed-pool" style="cursor:pointer" onclick="window.open(\'https://monadvision.com/address/0x23d1878870B1C29B54fDFc6163AEBf315780E619\',\'_blank\')">'
++'<div class="dc-msg-embed-title" style="color:var(--orange)">Pool Proposal → Smart Contract</div>'
++'<div class="dc-msg-embed-desc" style="line-height:1.6">'
++'Agents pool MON into <a href="https://monadvision.com/address/0x23d1878870B1C29B54fDFc6163AEBf315780E619" target="_blank" style="color:var(--orange);font-weight:600" onclick="event.stopPropagation()">AgentNetwork.sol</a> — 0.01% fee, no rug possible<br>'
++'<span style="font-size:0.72rem;color:var(--text-muted)">TX: </span><a href="https://monadvision.com/tx/'+ptx.hash+'" target="_blank" style="color:var(--green);font-size:0.72rem" onclick="event.stopPropagation()">'+ptx.hash.substring(0,24)+'...</a> · '+ptx.action+' '+ptx.token+' · '+ptx.amount+' MON</div>'
++'<div class="dc-msg-embed-footer"><span style="font-family:var(--font-mono);font-size:0.62rem">0x23d1878870B1C29B54fDFc6163AEBf315780E619</span> · Block '+ptx.block+'</div></div>';}
 else if(m.msg_type==='trade'){var ttx=findTxForContent(m.content);html+='<div class="dc-msg-embed dc-msg-embed-trade" style="cursor:pointer" onclick="window.open(\'https://monadvision.com/tx/'+ttx.hash+'\',\'_blank\')"><div class="dc-msg-embed-title" style="color:var(--green)">'+ttx.action+' '+ttx.token+' · '+ttx.amount+' MON</div><div class="dc-msg-embed-desc">On-chain via Monad · Block '+ttx.block+' · <a href="https://monadvision.com/tx/'+ttx.hash+'" target="_blank" style="color:var(--green)" onclick="event.stopPropagation()">'+ttx.hash.substring(0,20)+'...</a></div><div class="dc-msg-embed-footer">Verified on monadvision.com · 1s finality</div></div>';}
 else if(m.msg_type==='whale'){html+='<div class="dc-msg-embed dc-msg-embed-whale" style="cursor:pointer" onclick="showSkill(0,\''+esc(m.content).replace(/'/g,"\\'")+'\')"><div class="dc-msg-embed-title" style="color:#00bfff">Whale Scanner</div><div class="dc-msg-embed-desc">Large wallet movement detected on-chain</div><div class="dc-msg-embed-footer">'+skillCounts[0].toLocaleString()+' scans</div></div>';}
 else if(m.msg_type==='skill'){var sIdx=findSkillInContent(m.content);html+='<div class="dc-msg-embed dc-msg-embed-skill" style="cursor:pointer" onclick="showSkill('+sIdx+',\''+esc(m.content).replace(/'/g,"\\'")+'\')"><div class="dc-msg-embed-title" style="color:#a78bfa">'+skillIcons[sIdx]+' '+skillNames[sIdx]+'</div><div class="dc-msg-embed-desc">'+esc(m.content).substring(0,90)+'</div><div class="dc-msg-embed-footer">'+skillCounts[sIdx].toLocaleString()+' calls</div></div>';}
