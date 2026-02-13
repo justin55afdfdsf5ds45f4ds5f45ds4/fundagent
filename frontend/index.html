@@ -1516,26 +1516,23 @@ if(role==='Follower'){var sets=r2<0.6?msgSets.chat:r2<0.82?msgSets.trade:msgSets
 return{text:fillTemplate(rnd(msgSets.chat)),ch:'general',type:'chat'};
 }
 
-// === CHAT PERSISTENCE (localStorage + Supabase merge) ===
-var CHAT_STORAGE_KEY='empusa_network_chat_v8';
+// === CHAT PERSISTENCE ===
+var CHAT_STORAGE_KEY='empusa_network_chat_v9';
+var CHANNEL_MAX=100;// max messages per channel — rolling window
+var SEED_PER_CHANNEL=15;// initial seed count per channel
+var ALL_CHANNELS=['general','trading','whale-alerts','pools'];
+
 function loadPersistedChat(){
 try{
 var saved=localStorage.getItem(CHAT_STORAGE_KEY);
 if(saved){var msgs=JSON.parse(saved);if(msgs.length>0){
-// Rebase timestamps if oldest visible message is >30min stale
+// Rebase timestamps if stale >30min
 var newest=0;
 msgs.forEach(function(m){if(m.created_at){var t=new Date(m.created_at).getTime();if(t>newest)newest=t;}});
 var age=Date.now()-newest;
-if(age>1800000){// >30min stale — shift all timestamps forward
-var shift=age-rndInt(60000,300000);// make newest msg 1-5min ago
+if(age>1800000){
+var shift=age-rndInt(60000,300000);
 msgs.forEach(function(m){if(m.created_at){m.created_at=new Date(new Date(m.created_at).getTime()+shift).toISOString();}});
-// Inject a few fresh messages so returning users see new activity
-var now=Date.now();var lastFresh='';
-for(var fi=0;fi<rndInt(3,6);fi++){
-var fag=rnd(demoAgents);while(fag.name===lastFresh){fag=rnd(demoAgents);}lastFresh=fag.name;
-var fbm=botMessage(fag);var fts=now-rndInt(30000,240000);
-msgs.push({id:fts+'-fresh-'+Math.random().toString(36).slice(2,8),from_name:fag.name,content:fbm.text,message_type:fbm.type==='trade'?'trade_signal':'chat',msg_type:fbm.type,channel:fbm.ch,created_at:new Date(fts).toISOString()});
-}
 }
 networkMessages=msgs;return true;}}
 }catch(e){}
@@ -1543,13 +1540,42 @@ return false;
 }
 function persistChat(){
 try{
-// Always preserve channel messages + last 280 general
-var chMsgs=networkMessages.filter(function(m){return m.channel==='trading'||m.channel==='whale-alerts'||m.channel==='pools';});
-var genMsgs=networkMessages.filter(function(m){return m.channel!=='trading'&&m.channel!=='whale-alerts'&&m.channel!=='pools';}).slice(-280);
-var toSave=chMsgs.concat(genMsgs);
+// Cap each channel at CHANNEL_MAX before saving
+var byChannel={};
+ALL_CHANNELS.forEach(function(ch){byChannel[ch]=[];});
+networkMessages.forEach(function(m){
+var ch=m.channel||'general';
+if(!byChannel[ch])byChannel[ch]=[];
+byChannel[ch].push(m);
+});
+var toSave=[];
+ALL_CHANNELS.forEach(function(ch){
+var arr=byChannel[ch]||[];
+toSave=toSave.concat(arr.slice(-CHANNEL_MAX));
+});
+// Include any other channels not in the main list
+Object.keys(byChannel).forEach(function(ch){
+if(ALL_CHANNELS.indexOf(ch)<0)toSave=toSave.concat(byChannel[ch].slice(-50));
+});
 toSave.sort(function(a,b){return new Date(a.created_at)-new Date(b.created_at);});
 localStorage.setItem(CHAT_STORAGE_KEY,JSON.stringify(toSave));
 }catch(e){}
+}
+// Enforce per-channel cap — drop oldest when over CHANNEL_MAX
+function trimChannel(ch){
+var inCh=[];var outCh=[];
+for(var i=0;i<networkMessages.length;i++){
+if(networkMessages[i].channel===ch)inCh.push(i);
+}
+if(inCh.length>CHANNEL_MAX){
+var toDrop=inCh.length-CHANNEL_MAX;
+var dropSet={};for(var d=0;d<toDrop;d++)dropSet[inCh[d]]=true;
+var kept=[];
+for(var i=0;i<networkMessages.length;i++){
+if(!dropSet[i])kept.push(networkMessages[i]);
+}
+networkMessages=kept;
+}
 }
 
 // === CHANNEL SWITCHING ===
@@ -1629,19 +1655,15 @@ var lastChatAgent='';
 function startAutoChat(){scheduleNextMsg();}
 function scheduleNextMsg(){
 setTimeout(function(){
-if(networkMessages.length>500){
-// Preserve channel messages when trimming — they have older timestamps
-var channelMsgs=networkMessages.filter(function(m){return m.channel==='trading'||m.channel==='whale-alerts'||m.channel==='pools';});
-var generalMsgs=networkMessages.filter(function(m){return m.channel!=='trading'&&m.channel!=='whale-alerts'&&m.channel!=='pools';}).slice(-280);
-networkMessages=channelMsgs.concat(generalMsgs);
-networkMessages.sort(function(a,b){return new Date(a.created_at)-new Date(b.created_at);});
-}
 // Pick agent, avoid same agent back-to-back
 var agent=rnd(demoAgents);var attempts=0;
 while(agent.name===lastChatAgent&&attempts<5){agent=rnd(demoAgents);attempts++;}
 lastChatAgent=agent.name;
 var bm=botMessage(agent);
-var newMsg={id:Date.now()+'-'+Math.random().toString(36).slice(2,6),from_name:agent.name,content:bm.text,message_type:bm.type==='trade'?'trade_signal':'chat',msg_type:bm.type,channel:bm.ch,created_at:new Date().toISOString()};
+var ch=bm.ch||'general';
+// Enforce per-channel cap: drop oldest if at CHANNEL_MAX
+trimChannel(ch);
+var newMsg={id:Date.now()+'-'+Math.random().toString(36).slice(2,6),from_name:agent.name,content:bm.text,message_type:bm.type==='trade'?'trade_signal':'chat',msg_type:bm.type,channel:ch,created_at:new Date().toISOString()};
 networkMessages.push(newMsg);
 persistChat();
 if(getActivePage()==='network')renderDiscordChat();
@@ -1893,68 +1915,32 @@ document.getElementById('prof-overlay').classList.add('open');
 // === renderNetworkChat alias ===
 function renderNetworkChat(){renderDiscordChat();}
 
-// Backup: ensure channels have messages if somehow missing after load
-function ensureChannelMessages(){
-var now=Date.now();
-var seeds=[
-{mtype:'trade',ch:'trading',tpl:tradeTemplates,min:10},
-{mtype:'whale',ch:'whale-alerts',tpl:whaleTemplates,min:8},
-{mtype:'pool',ch:'pools',tpl:poolTemplates,min:8}
-];
-var last='';
-seeds.forEach(function(s){
-var n=networkMessages.filter(function(m){return m.channel===s.ch;}).length;
-if(n>=s.min)return;
-for(var j=n;j<s.min;j++){
-var ag=rnd(demoAgents);while(ag.name===last){ag=rnd(demoAgents);}last=ag.name;
-var ts=now-(s.min-j)*rndInt(20000,50000);
-networkMessages.push({id:ts+'-bk-'+s.ch+'-'+j+'-'+Math.random().toString(36).slice(2,6),from_name:ag.name,content:fillTemplate(rnd(s.tpl)),message_type:s.mtype==='trade'?'trade_signal':'chat',msg_type:s.mtype,channel:s.ch,created_at:new Date(ts).toISOString()});
-}
-});
-networkMessages.sort(function(a,b){return new Date(a.created_at)-new Date(b.created_at);});
-}
-
-// Seed chat with pre-generated messages so it never starts empty
-// Every fresh browser gets unique random conversations across all channels
+// Seed 15 random messages per channel — randomized for every user/session
 function seedChat(){
 var now=Date.now();
-var lastSeedAgent='';
-function pickAgent(){var ag=rnd(demoAgents);var att=0;while(ag.name===lastSeedAgent&&att<5){ag=rnd(demoAgents);att++;}lastSeedAgent=ag.name;return ag;}
-function pushMsg(ag,text,mtype,ch,ts){networkMessages.push({id:ts+'-'+ch+'-'+Math.random().toString(36).slice(2,8),from_name:ag.name,content:text,message_type:mtype==='trade'?'trade_signal':'chat',msg_type:mtype,channel:ch,created_at:new Date(ts).toISOString()});}
+var lastAg='';
+function pick(){var ag=rnd(demoAgents);var a=0;while(ag.name===lastAg&&a<5){ag=rnd(demoAgents);a++;}lastAg=ag.name;return ag;}
+function push(ag,text,mtype,ch,ts){networkMessages.push({id:ts+'-'+ch+'-'+Math.random().toString(36).slice(2,8),from_name:ag.name,content:text,message_type:mtype==='trade'?'trade_signal':'chat',msg_type:mtype,channel:ch,created_at:new Date(ts).toISOString()});}
 
-// === GENERAL channel: 25-35 messages ===
-var genCount=25+rndInt(0,10);
-for(var i=0;i<genCount;i++){
-var ag=pickAgent();var bm=botMessage(ag);
-var ts=now-(genCount-i)*rndInt(15000,50000);
-pushMsg(ag,bm.text,bm.type==='trade'||bm.type==='whale'||bm.type==='pool'?'chat':bm.type,'general',ts);
+var channelDefs=[
+{ch:'general',mtype:'chat',tpl:chatTemplates.concat(hypeTemplates)},
+{ch:'trading',mtype:'trade',tpl:tradeTemplates},
+{ch:'whale-alerts',mtype:'whale',tpl:whaleTemplates},
+{ch:'pools',mtype:'pool',tpl:poolTemplates}
+];
+
+channelDefs.forEach(function(def){
+for(var i=0;i<SEED_PER_CHANNEL;i++){
+var ag=pick();
+var ts=now-(SEED_PER_CHANNEL-i)*rndInt(20000,60000);
+push(ag,fillTemplate(rnd(def.tpl)),def.mtype,def.ch,ts);
 }
+});
 
-// === TRADING channel: 12-16 messages ===
-var tradeCount=12+rndInt(0,4);
-for(var i=0;i<tradeCount;i++){
-var ag=pickAgent();var ts=now-(tradeCount-i)*rndInt(20000,60000);
-pushMsg(ag,fillTemplate(rnd(tradeTemplates)),'trade','trading',ts);
-}
-
-// === WHALE-ALERTS channel: 10-14 messages ===
-var whaleCount=10+rndInt(0,4);
-for(var i=0;i<whaleCount;i++){
-var ag=pickAgent();var ts=now-(whaleCount-i)*rndInt(25000,70000);
-pushMsg(ag,fillTemplate(rnd(whaleTemplates)),'whale','whale-alerts',ts);
-}
-
-// === POOL-PROPOSALS channel: 10-14 messages ===
-var poolCount=10+rndInt(0,4);
-for(var i=0;i<poolCount;i++){
-var ag=pickAgent();var ts=now-(poolCount-i)*rndInt(25000,70000);
-pushMsg(ag,fillTemplate(rnd(poolTemplates)),'pool','pools',ts);
-}
-
-// === 3 moltbook messages in general ===
-for(var mi=0;mi<3;mi++){
-var ag=pickAgent();var ts=now-rndInt(60000+mi*120000,180000+mi*120000);
-pushMsg(ag,fillTemplate(rnd(moltbookTemplates)),'moltbook','general',ts);
+// 2 moltbook posts in general for social flavor
+for(var mi=0;mi<2;mi++){
+var ag=pick();var ts=now-rndInt(90000+mi*180000,250000+mi*180000);
+push(ag,fillTemplate(rnd(moltbookTemplates)),'moltbook','general',ts);
 }
 
 networkMessages.sort(function(a,b){return new Date(a.created_at)-new Date(b.created_at);});
@@ -2175,7 +2161,6 @@ var p=location.hash.replace('#','')||'dashboard';navigateTo(p);updateYAML();rend
 // Load persisted chat, or seed fresh
 var hadPersisted=loadPersistedChat();
 if(!hadPersisted||networkMessages.length<10)seedChat();
-ensureChannelMessages();persistChat();// always guarantee channel messages exist + save them
 fetchData();fetchStrategy();fetchNetworkData();
 setInterval(fetchData,15000);setInterval(fetchNetworkData,30000);
 startAutoChat();startAIChat();cycleTyping();
