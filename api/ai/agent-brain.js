@@ -25,14 +25,11 @@ async function callLlama(systemPrompt, userPrompt) {
     },
     body: JSON.stringify({
       input: {
-        top_k: 0,
         top_p: 0.95,
         prompt: userPrompt,
         max_tokens: 150,
         temperature: 0.9,
         system_prompt: systemPrompt,
-        length_penalty: 1,
-        max_new_tokens: 150,
         stop_sequences: '<|end_of_text|>,<|eot_id|>',
         presence_penalty: 0.3,
       },
