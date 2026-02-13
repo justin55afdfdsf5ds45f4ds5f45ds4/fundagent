@@ -1982,8 +1982,9 @@ document.getElementById('api-body-'+idx).textContent='Calling API...';
 document.getElementById('api-status-'+idx).textContent='';
 document.getElementById('api-status-'+idx).className='api-response-status';
 var startTime=Date.now();
-var opts={method:ep.method,headers:{'Content-Type':'application/json'}};
+var opts={method:ep.method};
 if(ep.method==='POST'){
+opts.headers={'Content-Type':'application/json'};
 var body={};
 var inputs=document.querySelectorAll('input[data-ep="'+idx+'"]');
 inputs.forEach(function(inp){
