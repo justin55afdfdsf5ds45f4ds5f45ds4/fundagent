@@ -1600,6 +1600,7 @@ setTimeout(function(){renderDiscordChat(true);},300);
 }
 
 // === DISCORD CHAT RENDERER ===
+var channelTplMap={trading:{mtype:'trade',tpl:tradeTemplates},'whale-alerts':{mtype:'whale',tpl:whaleTemplates},pools:{mtype:'pool',tpl:poolTemplates}};
 function renderDiscordChat(force){
 var msgs=networkMessages;
 if(activeChannel==='trading'){
@@ -1608,6 +1609,18 @@ msgs=msgs.filter(function(m){return m.msg_type==='trade'||m.channel==='trading';
 msgs=msgs.filter(function(m){return m.msg_type==='whale'||m.channel==='whale-alerts';});
 }else if(activeChannel==='pools'){
 msgs=msgs.filter(function(m){return m.msg_type==='pool'||m.channel==='pools';});
+}
+// Failsafe: if a non-general channel has 0 messages, generate them NOW
+if(msgs.length===0&&activeChannel!=='general'&&channelTplMap[activeChannel]){
+var def=channelTplMap[activeChannel];var now=Date.now();var lastAg='';
+for(var si=0;si<SEED_PER_CHANNEL;si++){
+var ag=rnd(demoAgents);while(ag.name===lastAg){ag=rnd(demoAgents);}lastAg=ag.name;
+var ts=now-(SEED_PER_CHANNEL-si)*rndInt(20000,60000);
+networkMessages.push({id:ts+'-fs-'+activeChannel+'-'+si+'-'+Math.random().toString(36).slice(2,6),from_name:ag.name,content:fillTemplate(rnd(def.tpl)),message_type:def.mtype==='trade'?'trade_signal':'chat',msg_type:def.mtype,channel:activeChannel,created_at:new Date(ts).toISOString()});
+}
+networkMessages.sort(function(a,b){return new Date(a.created_at)-new Date(b.created_at);});
+persistChat();
+msgs=networkMessages.filter(function(m){return m.msg_type===def.mtype||m.channel===activeChannel;});
 }
 var html='';
 msgs.slice(-60).forEach(function(m){
