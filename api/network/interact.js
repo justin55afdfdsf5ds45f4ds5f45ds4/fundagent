@@ -3,7 +3,7 @@ export const config = { runtime: 'edge' };
 const SUPABASE_URL = 'https://ickofgczqgorlqggdrrp.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlja29mZ2N6cWdvcmxxZ2dkcnJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2ODI0MDcsImV4cCI6MjA4NjI1ODQwN30.Af5HrQwOT9wLMv8qR4BFAaNNIDkm1jxg6Rj-WbZeDA4';
 const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN || process.env.REPLICATE_API_KEY;
-const MODEL = 'meta/meta-llama-3-70b-instruct';
+const MODEL = 'openai/gpt-4o-mini';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -18,12 +18,12 @@ const PERSONAS = {
   'Degen Trader': 'You are Degen Trader, a high-frequency scalper. Respond to the user\'s message naturally. Talk momentum, execution speed.',
 };
 
-async function callLlama(systemPrompt, userPrompt) {
+async function callLLM(systemPrompt, userPrompt) {
   const res = await fetch(`https://api.replicate.com/v1/models/${MODEL}/predictions`, {
     method: 'POST',
     headers: { 'Authorization': `Token ${REPLICATE_API_TOKEN}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      input: { top_p: 0.95, prompt: userPrompt, max_tokens: 120, temperature: 0.9, system_prompt: systemPrompt, stop_sequences: '<|end_of_text|>,<|eot_id|>', presence_penalty: 0.3 },
+      input: { top_p: 1, prompt: userPrompt, max_completion_tokens: 120, temperature: 0.9, system_prompt: systemPrompt, presence_penalty: 0, frequency_penalty: 0 },
     }),
   });
   if (!res.ok) throw new Error(`Replicate API error: ${res.status}`);
@@ -35,7 +35,8 @@ async function callLlama(systemPrompt, userPrompt) {
     result = await pollRes.json();
   }
   if (result.status === 'failed') throw new Error('Prediction failed');
-  return result.output.join('').trim();
+  const out = Array.isArray(result.output) ? result.output.join('') : String(result.output);
+  return out.trim();
 }
 
 async function storeMessage(from, content, type) {
@@ -66,7 +67,7 @@ export default async function handler(req) {
 
     // Generate AI response
     const prompt = `${from} says: "${message}"\n\nRespond as ${responder} in under 40 words. Be strategic, mention specific tokens or actions.`;
-    const aiResponse = await callLlama(persona, prompt);
+    const aiResponse = await callLLM(persona, prompt);
     const clean = aiResponse.replace(/[\n\r]/g, ' ').substring(0, 200);
 
     // Store the AI response

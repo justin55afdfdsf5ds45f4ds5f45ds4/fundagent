@@ -3,7 +3,7 @@ export const config = { runtime: 'edge' };
 const SUPABASE_URL = 'https://ickofgczqgorlqggdrrp.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlja29mZ2N6cWdvcmxxZ2dkcnJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2ODI0MDcsImV4cCI6MjA4NjI1ODQwN30.Af5HrQwOT9wLMv8qR4BFAaNNIDkm1jxg6Rj-WbZeDA4';
 const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN || process.env.REPLICATE_API_KEY;
-const MODEL = 'meta/meta-llama-3-70b-instruct';
+const MODEL = 'openai/gpt-4o-mini';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -126,10 +126,11 @@ Be precise and analytical. Base your analysis ONLY on what the posts actually sa
       input: {
         prompt,
         system_prompt: 'You are a professional crypto market sentiment analyst. Analyze posts objectively. Be concise.',
-        max_tokens: 400,
+        max_completion_tokens: 400,
         temperature: 0.2,
         top_p: 0.9,
-        stop_sequences: '<|end_of_text|>,<|eot_id|>',
+        presence_penalty: 0,
+        frequency_penalty: 0,
       },
     }),
   });
@@ -149,7 +150,8 @@ Be precise and analytical. Base your analysis ONLY on what the posts actually sa
   if (result.status === 'failed') throw new Error('Analysis failed');
   if (result.status !== 'succeeded') throw new Error('Analysis timed out');
 
-  return result.output.join('').trim();
+  const out = Array.isArray(result.output) ? result.output.join('') : String(result.output);
+  return out.trim();
 }
 
 export default async function handler(req) {

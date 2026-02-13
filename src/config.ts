@@ -13,7 +13,7 @@ export const config = {
   
   // Replicate
   replicateApiKey: process.env.REPLICATE_API_KEY || '',
-  replicateModel: process.env.REPLICATE_MODEL || 'meta/meta-llama-3-70b-instruct',
+  replicateModel: process.env.REPLICATE_MODEL || 'openai/gpt-4o-mini',
   
   // OpenAI
   openaiApiKey: process.env.OPENAI_API_KEY || '',

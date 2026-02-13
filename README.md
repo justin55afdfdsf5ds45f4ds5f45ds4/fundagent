@@ -60,7 +60,7 @@ nad.fun API / Page Scrape
 - **Blockchain**: Monad Mainnet (EVM, Chain 143)
 - **Trading**: [@nadfun/sdk](https://www.npmjs.com/package/@nadfun/sdk) + ethers.js v6
 - **DEX**: Uniswap V2 Router at `0x0B79d71AE99528D1dB24A4148b5f4F865cc2b137`
-- **LLM**: Replicate (Meta Llama 3 70B) — swappable to Anthropic/OpenAI
+- **LLM**: Replicate (OpenAI GPT-4o Mini) — swappable to Anthropic/other models
 - **Social**: Moltbook API for autonomous posting
 - **Frontend**: Vanilla HTML/JS dashboard with live polling
 - **Deployment**: Vercel (static dashboard) + local agent process

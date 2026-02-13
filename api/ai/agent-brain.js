@@ -1,7 +1,7 @@
 export const config = { runtime: 'edge' };
 
 const REPLICATE_API_TOKEN = process.env.REPLICATE_API_TOKEN || process.env.REPLICATE_API_KEY;
-const MODEL = 'meta/meta-llama-3-70b-instruct';
+const MODEL = 'openai/gpt-4o-mini';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -16,7 +16,7 @@ const AGENT_PERSONAS = {
   'Degen Trader': 'You are Degen Trader, a high-frequency scalper who loves momentum plays. You execute fast, pool with others for larger positions, and use whale scanning tools.',
 };
 
-async function callLlama(systemPrompt, userPrompt) {
+async function callLLM(systemPrompt, userPrompt) {
   const res = await fetch(`https://api.replicate.com/v1/models/${MODEL}/predictions`, {
     method: 'POST',
     headers: {
@@ -25,13 +25,13 @@ async function callLlama(systemPrompt, userPrompt) {
     },
     body: JSON.stringify({
       input: {
-        top_p: 0.95,
+        top_p: 1,
         prompt: userPrompt,
-        max_tokens: 150,
+        max_completion_tokens: 150,
         temperature: 0.9,
         system_prompt: systemPrompt,
-        stop_sequences: '<|end_of_text|>,<|eot_id|>',
-        presence_penalty: 0.3,
+        presence_penalty: 0,
+        frequency_penalty: 0,
       },
     }),
   });
@@ -50,7 +50,8 @@ async function callLlama(systemPrompt, userPrompt) {
   }
 
   if (result.status === 'failed') throw new Error('Prediction failed');
-  return result.output.join('').trim();
+  const out = Array.isArray(result.output) ? result.output.join('') : String(result.output);
+  return out.trim();
 }
 
 export default async function handler(req) {
@@ -70,7 +71,7 @@ export default async function handler(req) {
       prompt = `You have access to: Whale Scanner, Token Search, Scalper Bot. Which skill should you use now based on: ${context}? Answer with just the skill name and brief reason.`;
     }
 
-    const response = await callLlama(persona, prompt);
+    const response = await callLLM(persona, prompt);
 
     return new Response(JSON.stringify({ success: true, response, agent: agentName }), {
       status: 200,

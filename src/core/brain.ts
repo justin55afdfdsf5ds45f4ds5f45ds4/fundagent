@@ -53,15 +53,18 @@ async function thinkAnthropic(systemPrompt: string, userMessage: string): Promis
 }
 
 async function thinkReplicate(systemPrompt: string, userMessage: string): Promise<string> {
+  const model = config.replicateModel || 'openai/gpt-4o-mini';
   const response = await axios.post(
-    'https://api.replicate.com/v1/predictions',
+    `https://api.replicate.com/v1/models/${model}/predictions`,
     {
-      version: 'anthropic/claude-3.5-sonnet',
       input: {
         prompt: userMessage,
-        max_tokens: 8192,
+        max_completion_tokens: 1024,
+        temperature: 0.7,
+        top_p: 1,
         system_prompt: systemPrompt,
-        max_image_resolution: 0.5,
+        presence_penalty: 0,
+        frequency_penalty: 0,
       },
     },
     {
