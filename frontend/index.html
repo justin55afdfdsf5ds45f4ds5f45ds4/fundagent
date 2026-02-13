@@ -1809,14 +1809,15 @@ proofHtml='<div id="sentiment-live" style="margin-top:4px">'
 +'<div class="sent-loader">'
 +'<div class="sent-radar"><div class="sent-radar-dot" style="top:8px;right:8px"></div><div class="sent-radar-dot" style="bottom:12px;left:6px;animation-delay:0.5s"></div><div class="sent-radar-dot" style="top:50%;right:2px;animation-delay:1s"></div></div>'
 +'<div style="text-align:center;margin-bottom:18px"><div style="color:#f59e0b;font-size:1rem;font-weight:700;letter-spacing:0.5px;margin-bottom:4px">Scanning <span style="color:var(--text-white)">'+esc(targetToken)+'</span></div>'
-+'<div style="color:var(--text-muted);font-size:0.72rem">Real-time multi-source sentiment analysis</div></div>'
-+'<div style="max-width:280px;margin:0 auto">'
-+'<div class="sent-step" style="animation-delay:0.2s"><div class="sent-step-icon" style="background:rgba(0,191,255,0.15);color:#00bfff">D</div><div><span style="color:var(--text-white);font-weight:600">DexScreener</span> <span style="color:var(--text-muted)">— fetching DEX pairs</span><span class="sent-step-dots"><span style="--i:0">.</span><span style="--i:1">.</span><span style="--i:2">.</span></span></div></div>'
-+'<div class="sent-step" style="animation-delay:0.7s"><div class="sent-step-icon" style="background:rgba(251,191,36,0.15);color:#fbbf24">C</div><div><span style="color:var(--text-white);font-weight:600">CoinGecko</span> <span style="color:var(--text-muted)">— trending coins</span><span class="sent-step-dots"><span style="--i:0">.</span><span style="--i:1">.</span><span style="--i:2">.</span></span></div></div>'
-+'<div class="sent-step" style="animation-delay:1.2s"><div class="sent-step-icon" style="background:rgba(0,255,0,0.12);color:var(--green)">N</div><div><span style="color:var(--text-white);font-weight:600">EmpusaAI</span> <span style="color:var(--text-muted)">— network messages</span><span class="sent-step-dots"><span style="--i:0">.</span><span style="--i:1">.</span><span style="--i:2">.</span></span></div></div>'
-+'<div class="sent-step" style="animation-delay:1.8s"><div class="sent-step-icon" style="background:rgba(167,139,250,0.15);color:#a78bfa">AI</div><div><span style="color:var(--text-white);font-weight:600">Llama 3 70B</span> <span style="color:var(--text-muted)">— NLP scoring</span><span class="sent-step-dots"><span style="--i:0">.</span><span style="--i:1">.</span><span style="--i:2">.</span></span></div></div>'
++'<div id="sent-status" style="color:var(--text-muted);font-size:0.72rem">Connecting to data sources...</div></div>'
++'<div style="max-width:300px;margin:0 auto">'
++'<div class="sent-step" id="sent-s0" style="animation-delay:0.1s"><div class="sent-step-icon" style="background:rgba(0,191,255,0.15);color:#00bfff">D</div><div style="flex:1;display:flex;justify-content:space-between;align-items:center"><span><span style="color:var(--text-white);font-weight:600">DexScreener</span> <span style="color:var(--text-muted)">— DEX pairs</span></span><span id="sent-c0" style="font-size:0.7rem;color:var(--text-muted)">waiting</span></div></div>'
++'<div class="sent-step" id="sent-s1" style="animation-delay:0.3s"><div class="sent-step-icon" style="background:rgba(251,191,36,0.15);color:#fbbf24">C</div><div style="flex:1;display:flex;justify-content:space-between;align-items:center"><span><span style="color:var(--text-white);font-weight:600">CoinGecko</span> <span style="color:var(--text-muted)">— trending</span></span><span id="sent-c1" style="font-size:0.7rem;color:var(--text-muted)">waiting</span></div></div>'
++'<div class="sent-step" id="sent-s2" style="animation-delay:0.5s"><div class="sent-step-icon" style="background:rgba(0,255,0,0.12);color:var(--green)">N</div><div style="flex:1;display:flex;justify-content:space-between;align-items:center"><span><span style="color:var(--text-white);font-weight:600">EmpusaAI</span> <span style="color:var(--text-muted)">— network</span></span><span id="sent-c2" style="font-size:0.7rem;color:var(--text-muted)">waiting</span></div></div>'
++'<div class="sent-step" id="sent-s3" style="animation-delay:0.7s"><div class="sent-step-icon" style="background:rgba(167,139,250,0.15);color:#a78bfa">AI</div><div style="flex:1;display:flex;justify-content:space-between;align-items:center"><span><span style="color:var(--text-white);font-weight:600">Llama 3 70B</span> <span style="color:var(--text-muted)">— NLP</span></span><span id="sent-c3" style="font-size:0.7rem;color:var(--text-muted)">waiting</span></div></div>'
 +'</div>'
-+'<div style="margin-top:16px;height:3px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden"><div style="height:100%;width:30%;background:linear-gradient(90deg,#f59e0b,#fbbf24);border-radius:2px;animation:sentPulse 2s ease-in-out infinite"></div></div>'
++'<div style="margin-top:16px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:0.68rem;color:var(--text-muted)">Progress</span><span id="sent-pct" style="font-size:0.68rem;color:#f59e0b;font-weight:600">0%</span></div>'
++'<div style="height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden"><div id="sent-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#f59e0b,#fbbf24);border-radius:2px;transition:width 0.4s ease"></div></div></div>'
 +'</div></div>';
 // Fire live API call after rendering
 setTimeout(function(){fetchLiveSentiment(targetToken);},100);
@@ -1850,13 +1851,43 @@ document.getElementById('skill-popup').classList.add('open');
 }
 
 // Live sentiment fetch — calls real API, shows real posts + AI analysis
+function sentStep(idx,text,color){
+var el=document.getElementById('sent-c'+idx);if(el){el.textContent=text;el.style.color=color||'var(--green)';}
+}
+function sentProgress(pct){
+var bar=document.getElementById('sent-bar');if(bar)bar.style.width=pct+'%';
+var num=document.getElementById('sent-pct');if(num)num.textContent=pct+'%';
+}
+function sentStatus(text){var el=document.getElementById('sent-status');if(el)el.textContent=text;}
 async function fetchLiveSentiment(token){
 var container=document.getElementById('sentiment-live');
 if(!container)return;
 try{
+// Step 1: Fetching sources
+sentStep(0,'fetching...','#00bfff');sentProgress(5);sentStatus('Fetching DexScreener pairs...');
+var fetchDone=false;
+// Simulate step progress while waiting for single API call
+setTimeout(function(){if(!fetchDone){sentStep(0,'done','var(--green)');sentStep(1,'fetching...','#fbbf24');sentProgress(20);sentStatus('Fetching CoinGecko trending...');}},800);
+setTimeout(function(){if(!fetchDone){sentStep(1,'done','var(--green)');sentStep(2,'fetching...','var(--green)');sentProgress(40);sentStatus('Scanning EmpusaAI network...');}},1800);
+setTimeout(function(){if(!fetchDone){sentStep(2,'done','var(--green)');sentStep(3,'running...','#a78bfa');sentProgress(60);sentStatus('Running Llama 3 70B analysis...');}},2800);
+setTimeout(function(){if(!fetchDone){sentProgress(75);}},4500);
+setTimeout(function(){if(!fetchDone){sentProgress(85);sentStatus('AI scoring in progress...');}},7000);
+setTimeout(function(){if(!fetchDone){sentProgress(92);}},10000);
+
 var res=await fetch(API_BASE+'/api/network/sentiment',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:token})});
+fetchDone=true;
 if(!res.ok)throw new Error('API error '+res.status);
+// Complete all steps
+sentStep(0,'done','var(--green)');sentStep(1,'done','var(--green)');sentStep(2,'done','var(--green)');sentStep(3,'done','var(--green)');sentProgress(100);sentStatus('Analysis complete!');
 var data=await res.json();
+// Show actual counts on steps
+var sc2=data.sources||{};
+sentStep(0,(sc2.dex||0)+' pairs','var(--green)');
+sentStep(1,(sc2.trending||0)+' coins','var(--green)');
+sentStep(2,(sc2.network||0)+' msgs','var(--green)');
+sentStep(3,'score: '+(data.score||50),'var(--green)');
+// Brief pause at 100% so user sees completed state
+await new Promise(function(r){setTimeout(r,600);});
 var html='';
 
 // Show sources count
