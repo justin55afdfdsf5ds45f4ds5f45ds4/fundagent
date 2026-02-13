@@ -14,10 +14,12 @@ const CORS = {
 
 // Fetch real Reddit posts about the token / Monad ecosystem
 async function fetchRedditPosts(token) {
+  const clean = token.replace('$', '');
   const queries = [
-    `${token} monad`,
-    `${token} crypto`,
-    'monad blockchain DeFi',
+    `${clean} monad crypto`,
+    `${clean} token blockchain`,
+    'monad blockchain DeFi token',
+    'monad memecoin trading',
   ];
   const allPosts = [];
 
@@ -25,30 +27,31 @@ async function fetchRedditPosts(token) {
     try {
       const res = await fetch(
         `https://www.reddit.com/search.json?q=${encodeURIComponent(q)}&sort=new&limit=5&t=month`,
-        { headers: { 'User-Agent': 'EmpusaAI-SentimentBot/1.0' } }
+        { headers: { 'User-Agent': 'EmpusaAI-SentimentBot/1.0 (trading-agent-network)' } }
       );
       if (!res.ok) continue;
       const data = await res.json();
       if (data.data && data.data.children) {
         for (const c of data.data.children) {
           const d = c.data;
-          allPosts.push({
-            source: 'Reddit',
-            subreddit: 'r/' + d.subreddit,
-            author: 'u/' + d.author,
-            title: d.title,
-            text: (d.selftext || '').substring(0, 200),
-            url: 'https://reddit.com' + d.permalink,
-            upvotes: d.score,
-            time: new Date(d.created_utc * 1000).toISOString(),
-          });
+          if (d.selftext || d.title) {
+            allPosts.push({
+              source: 'Reddit',
+              subreddit: 'r/' + d.subreddit,
+              author: 'u/' + d.author,
+              title: d.title,
+              text: (d.selftext || '').substring(0, 200),
+              url: 'https://reddit.com' + d.permalink,
+              upvotes: d.score,
+              time: new Date(d.created_utc * 1000).toISOString(),
+            });
+          }
         }
       }
-    } catch (e) { /* skip failed queries */ }
+    } catch (_) {}
     if (allPosts.length >= 8) break;
   }
 
-  // Dedupe by title
   const seen = new Set();
   return allPosts.filter(p => {
     if (seen.has(p.title)) return false;
@@ -59,21 +62,32 @@ async function fetchRedditPosts(token) {
 
 // Fetch real messages from our own network mentioning the token
 async function fetchNetworkMessages(token) {
+  const headers = { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` };
   try {
-    const cleanToken = token.replace('$', '');
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/network_messages?or=(content.ilike.*${encodeURIComponent(cleanToken)}*,content.ilike.*${encodeURIComponent(token)}*)&select=from_name,content,created_at&order=created_at.desc&limit=5`,
-      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+    const clean = token.replace('$', '');
+    // Try token-specific messages first
+    let res = await fetch(
+      `${SUPABASE_URL}/rest/v1/network_messages?or=(content.ilike.*${encodeURIComponent(clean)}*,content.ilike.*${encodeURIComponent(token)}*)&select=from_name,content,created_at&order=created_at.desc&limit=5`,
+      { headers }
     );
-    if (!res.ok) return [];
-    const msgs = await res.json();
-    return msgs.map(m => ({
+    let msgs = res.ok ? await res.json() : [];
+
+    // Fallback: get recent trade signals + chats as general market context
+    if (!Array.isArray(msgs) || msgs.length === 0) {
+      res = await fetch(
+        `${SUPABASE_URL}/rest/v1/network_messages?select=from_name,content,created_at&order=created_at.desc&limit=10`,
+        { headers }
+      );
+      msgs = res.ok ? await res.json() : [];
+    }
+
+    return (Array.isArray(msgs) ? msgs : []).map(m => ({
       source: 'EmpusaAI Network',
       author: m.from_name,
       text: m.content,
       time: m.created_at,
     }));
-  } catch (e) { return []; }
+  } catch (_) { return []; }
 }
 
 // Run AI sentiment analysis on collected posts
