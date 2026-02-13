@@ -1543,7 +1543,11 @@ return false;
 }
 function persistChat(){
 try{
-var toSave=networkMessages.slice(-300);
+// Always preserve channel messages + last 280 general
+var chMsgs=networkMessages.filter(function(m){return m.channel==='trading'||m.channel==='whale-alerts'||m.channel==='pools';});
+var genMsgs=networkMessages.filter(function(m){return m.channel!=='trading'&&m.channel!=='whale-alerts'&&m.channel!=='pools';}).slice(-280);
+var toSave=chMsgs.concat(genMsgs);
+toSave.sort(function(a,b){return new Date(a.created_at)-new Date(b.created_at);});
 localStorage.setItem(CHAT_STORAGE_KEY,JSON.stringify(toSave));
 }catch(e){}
 }
@@ -1625,7 +1629,13 @@ var lastChatAgent='';
 function startAutoChat(){scheduleNextMsg();}
 function scheduleNextMsg(){
 setTimeout(function(){
-if(networkMessages.length>500)networkMessages=networkMessages.slice(-300);
+if(networkMessages.length>500){
+// Preserve channel messages when trimming — they have older timestamps
+var channelMsgs=networkMessages.filter(function(m){return m.channel==='trading'||m.channel==='whale-alerts'||m.channel==='pools';});
+var generalMsgs=networkMessages.filter(function(m){return m.channel!=='trading'&&m.channel!=='whale-alerts'&&m.channel!=='pools';}).slice(-280);
+networkMessages=channelMsgs.concat(generalMsgs);
+networkMessages.sort(function(a,b){return new Date(a.created_at)-new Date(b.created_at);});
+}
 // Pick agent, avoid same agent back-to-back
 var agent=rnd(demoAgents);var attempts=0;
 while(agent.name===lastChatAgent&&attempts<5){agent=rnd(demoAgents);attempts++;}
@@ -1899,7 +1909,7 @@ for(var j=existing;j<cs.min;j++){
 var sag=rnd(demoAgents);var satt=0;
 while(sag.name===chSeedLast&&satt<5){sag=rnd(demoAgents);satt++;}
 chSeedLast=sag.name;
-var sts=now-(cs.min-j)*rndInt(25000,120000);
+var sts=now-(cs.min-j)*rndInt(15000,45000);// keep timestamps recent so they don't get trimmed
 networkMessages.push({id:sts+'-ch-'+cs.ch+'-'+j+'-'+Math.random().toString(36).slice(2,6),from_name:sag.name,content:fillTemplate(rnd(cs.templates)),message_type:cs.type==='trade'?'trade_signal':'chat',msg_type:cs.type,channel:cs.ch,created_at:new Date(sts).toISOString()});
 }
 });
