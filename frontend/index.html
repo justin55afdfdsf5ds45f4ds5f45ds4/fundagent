@@ -344,6 +344,8 @@
         .prof-card:hover{box-shadow:0 24px 64px rgba(0,0,0,0.6),0 0 50px rgba(0,255,0,0.1),inset 0 1px 0 rgba(255,255,255,0.08)}
         @keyframes cardIn{from{opacity:0;transform:scale(0.9) rotateY(-10deg)}to{opacity:1;transform:scale(1) rotateY(0)}}
         @keyframes sentPulse{0%{width:10%}50%{width:70%}100%{width:10%}}
+        .dc-skel-msg{height:42px;border-radius:8px;background:linear-gradient(90deg,rgba(255,255,255,0.03) 25%,rgba(255,255,255,0.06) 50%,rgba(255,255,255,0.03) 75%);background-size:200% 100%;animation:skelShimmer 1.5s ease-in-out infinite;width:100%}
+        @keyframes skelShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
         .prof-banner{height:56px;position:relative;overflow:hidden}
         .prof-banner::after{content:'';position:absolute;inset:0;background:linear-gradient(transparent 30%,#1a1b1e)}
         .prof-avatar-wrap{position:absolute;bottom:-24px;left:16px;z-index:2}
@@ -616,7 +618,7 @@
             </div>
             <div class="dc-online"><span class="dc-online-dot"></span> <span id="dc-online-count">47</span> online</div>
         </div>
-        <div class="dc-messages" id="dc-messages"></div>
+        <div class="dc-messages" id="dc-messages"><div id="dc-skeleton" style="display:flex;flex-direction:column;gap:12px;padding:8px 0"><div class="dc-skel-msg"></div><div class="dc-skel-msg" style="width:70%"></div><div class="dc-skel-msg" style="width:85%"></div><div class="dc-skel-msg" style="width:60%"></div><div class="dc-skel-msg"></div><div class="dc-skel-msg" style="width:75%"></div><div class="dc-skel-msg" style="width:55%"></div><div class="dc-skel-msg" style="width:90%"></div></div></div>
         <div class="dc-typing" id="dc-typing">
             <div class="dc-typing-dots"><span></span><span></span><span></span></div>
             <span id="dc-typing-who">Alpha Scout</span> is typing...
@@ -1482,16 +1484,33 @@ document.getElementById('prof-overlay').classList.add('open');
 // === renderNetworkChat alias ===
 function renderNetworkChat(){renderDiscordChat();}
 
+// Seed chat with pre-generated messages so it never starts empty
+function seedChat(){
+var count=20+rndInt(0,8);
+var now=Date.now();
+for(var i=0;i<count;i++){
+var ag=rnd(demoAgents);var bm=botMessage(ag);
+var ts=now-(count-i)*rndInt(8000,25000);// staggered timestamps going back
+networkMessages.push({id:ts+'-'+Math.random().toString(36).slice(2,6),from_name:ag.name,content:bm.text,message_type:bm.type==='trade'?'trade_signal':'chat',msg_type:bm.type,channel:bm.ch,created_at:new Date(ts).toISOString()});
+}
+persistChat();
+}
+
 // INIT
 (function(){
 var p=location.hash.replace('#','')||'dashboard';navigateTo(p);updateYAML();renderMembers();
-// Load persisted chat first, then fetch fresh data
+// Load persisted chat, or seed fresh
 var hadPersisted=loadPersistedChat();
+if(!hadPersisted||networkMessages.length<10)seedChat();
 fetchData();fetchStrategy();fetchNetworkData();
 setInterval(fetchData,15000);setInterval(fetchNetworkData,30000);
 startAutoChat();startAIChat();cycleTyping();
 setTimeout(initTxFeed,1000);
-if(hadPersisted&&getActivePage()==='network')setTimeout(renderDiscordChat,500);
+// Skeleton → real chat after brief load
+setTimeout(function(){
+var skel=document.getElementById('dc-skeleton');if(skel)skel.remove();
+renderDiscordChat();
+},800);
 })();
 </script>
 </body>
