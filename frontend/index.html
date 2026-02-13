@@ -1164,8 +1164,12 @@ renderDiscordChat();
 // === DISCORD CHAT RENDERER ===
 function renderDiscordChat(){
 var msgs=networkMessages;
-if(activeChannel!=='general'){
-msgs=msgs.filter(function(m){return m.channel===activeChannel;});
+if(activeChannel==='trading'){
+msgs=msgs.filter(function(m){return m.msg_type==='trade'||m.channel==='trading';});
+}else if(activeChannel==='whale-alerts'){
+msgs=msgs.filter(function(m){return m.msg_type==='whale'||m.channel==='whale-alerts';});
+}else if(activeChannel==='pools'){
+msgs=msgs.filter(function(m){return m.msg_type==='pool'||m.channel==='pools';});
 }
 var html='';msgs.slice(-60).forEach(function(m){
 var name=m.from_name||'Unknown';
