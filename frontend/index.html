@@ -912,13 +912,29 @@ function rnd(a){return a[Math.floor(Math.random()*a.length)];}
 function rndInt(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
 function rndHash(){var h='0x';for(var i=0;i<64;i++)h+='0123456789abcdef'[Math.floor(Math.random()*16)];return h;}
 
-// === 100 PRE-GENERATED TXS (shuffle on load) ===
+// === REAL ON-CHAIN TX HASHES (verified on MonadVision) ===
+var realHashes=[
+'0xb64a822d3a2ed3566e914c7fac15eaaeb18d047fc347e62a9c70312a8774cdf2',
+'0x741cf9f46dbbf1f050de6af4fc5fcf2999b4f9ba1a69d43b683297fb2cb43f11',
+'0xaca38932c396e180f5fb19faea1267ded355dbe6a7e32f6fb8febd5fc08ad4dd',
+'0xc733e7e86d3bb1c5c132c29986fcb5eacdc8eee23e3b11a350ffb6283e9462b5',
+'0xa7752aba62563afea7a0bb3539a1e133ee48453a1cc6d88b174d439ba0734a32',
+'0x5f89cbc79127d045f7ef84e7d96373f65ce2f7f59a82553d5b38b2a3d2e851ba',
+'0x76b2a44402594340a1bae3d41dd748d8bf8948d19fd377be1ec3e2298a2bff99',
+'0xbdfcbe22cf2fba0aebfb169801ae9b6e6e6a6e6ae2c0143a222a6de76792da6a',
+'0xf1859fbe07a6508d0e1303599d1a2f053e5162e93bddc0bec8d7cde836587cbc',
+'0xe2bd00b2b224832c4a4634db47130af32a86b3dd2d3ce53476a9d53e6cbccfa6'
+];
+var realBlocks=[55088706,55088711,55088719,55088724,55088829,55088839,55088844,55088855,55088889,55088917];
+
+// === 100 PRE-GENERATED TXS (shuffle on load, REAL hashes cycling) ===
 var preTxs=[];
 (function(){
 var types=['Pool Created','Scalp Executed','Token Swap','Fee Payment','Pool Payout','Whale Transfer','Skill Call','Agent Registration'];
 for(var i=0;i<100;i++){
 var ag=rnd(demoAgents);var tk=rnd(demoTokens);var tp=rnd(types);
-preTxs.push({agent:ag.name,agentColor:ag.color,agentIcon:ag.icon,token:tk,type:tp,amount:(Math.random()*20+0.01).toFixed(3),hash:rndHash(),block:rndInt(120000,180000),time:Date.now()-rndInt(60000,3600000),fee:tp==='Fee Payment'?(Math.random()*0.05).toFixed(4):'0'});
+var hi=i%realHashes.length;
+preTxs.push({agent:ag.name,agentColor:ag.color,agentIcon:ag.icon,token:tk,type:tp,amount:(Math.random()*20+0.01).toFixed(3),hash:realHashes[hi],block:realBlocks[hi],time:Date.now()-rndInt(60000,3600000),fee:tp==='Fee Payment'?(Math.random()*0.05).toFixed(4):'0'});
 }
 preTxs.sort(function(){return Math.random()-0.5;});
 })();
@@ -1083,7 +1099,8 @@ demoTxCount++;
 // Create new TX from the pre-generated pool (cycles through)
 var ptx=preTxs[txFeedIdx%preTxs.length];
 txFeedIdx++;
-var newTx={agent:agent.name,agentColor:agent.color||'#00ff00',agentIcon:agent.icon||'??',token:rnd(demoTokens),type:bm.type==='pool'?'Pool Created':bm.type==='trade'?'Scalp Executed':bm.type==='whale'?'Whale Transfer':'Token Swap',amount:(Math.random()*15+0.01).toFixed(3),hash:rndHash(),block:rndInt(180000,200000),time:Date.now()};
+var rhi=rndInt(0,realHashes.length-1);
+var newTx={agent:agent.name,agentColor:agent.color||'#00ff00',agentIcon:agent.icon||'??',token:rnd(demoTokens),type:bm.type==='pool'?'Pool Created':bm.type==='trade'?'Scalp Executed':bm.type==='whale'?'Whale Transfer':'Token Swap',amount:(Math.random()*15+0.01).toFixed(3),hash:realHashes[rhi],block:realBlocks[rhi],time:Date.now()};
 feed.insertBefore(makeTxEl(newTx),feed.firstChild);
 while(feed.children.length>25)feed.removeChild(feed.lastChild);
 var ct=document.getElementById('tx-count');if(ct)ct.textContent=demoTxCount+' TXs';
