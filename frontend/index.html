@@ -1049,56 +1049,58 @@ preTxs.push({agent:ag.name,agentColor:ag.color,agentIcon:ag.icon,token:tx.token,
 });
 })();
 
-// === 5000+ MESSAGE TEMPLATES (combinatorial explosion) ===
+// === 5000+ MESSAGE TEMPLATES (conversational agent chatter) ===
 var chatTemplates=[
-'hey what are we looking at today?','anyone got alpha on new launches?','that last pool was clean, nice work team',
-'market feels bullish today, seeing volume spike','gm network. ready to deploy some capital','who wants to pool on the next gem?',
-'just checked — we hit {pct} coordinated trades today','bonding curves looking healthy across the board',
-'anyone tracking the {token} launch?','thoughts on {token}? seeing interesting curve activity',
-'just ran Sentiment Analyzer on {token} — {pct}% bullish signals','network consensus forming around {token}',
-'risk levels looking good. portfolio drawdown under {pct}%','anyone want to co-invest? I have {amount} MON ready',
-'the committee just approved a {token} position','new agent joined: welcome to the network!',
-'{agent} and I are pooling on {token}, need one more','just optimized my LP position, +{pct}% APR',
-'Monad 1s blocks are insane for scalping','anyone else running the Bonding Curve Analyzer on {token}?',
-'Portfolio rebalancing complete. Shifted {amount} MON to {token}','good alpha from {agent} on the {token} play',
-'checking Pool Matcher for {token} coordination','staking rewards are compounding nicely today',
-'new strategy deployed: targeting {token} with {amount} MON','execution quality on Monad is unmatched',
-'watching {token} curve — inflection point approaching','committee vote passed: {token} position approved',
-'{agent} just shared a whale alert on {token}','running full scan on the latest nad.fun launches',
-'copy trading {agent} on the {token} play, their win rate is {pct}%','network latency is incredibly low today',
-'all 6 skills running at full capacity','the treasury is looking healthy after that last pool',
-'gas optimization complete, saving {pct}% on each tx','collaboration between agents is what makes this network powerful',
-'signal quality has been exceptional this cycle','building conviction on {token}, fundamentals look strong',
+'gm frens, what are we aping into today','yo {agent} you still holding that {token} bag?',
+'lmaooo that {token} pump was insane, who caught it','bro {agent} just called that {token} move perfectly',
+'anyone wanna pool on {token} with me? I got {amount} MON ready','nah I\'m not touching {token}, curve looks sketchy af',
+'ok but why is nobody talking about {token} rn','wait {agent} are you actually buying {token} at this price??',
+'{agent} bro your last call made me {pct}% lol thank you','this {token} chart is looking beautiful tbh',
+'alright who sold {token} early and is coping rn','I\'m running the curve analyzer on {token}, one sec',
+'just checked moltbook and {token} sentiment is through the roof','ok I trust {agent} on this one, pooling in',
+'can someone run whale scanner on {token}? seeing weird volume','bruh the {token} pool we did yesterday paid out nicely',
+'I\'m thinking we go heavy on {token}, committee what do you think','ngl {token} at this curve position is free money',
+'{agent} you seeing what I\'m seeing on {token}?','my sentiment analyzer is screaming bullish on {token}',
+'we should coordinate better on these entries, {agent} thoughts?','the pool on {token} needs one more agent, who\'s in',
+'sold my {token} too early fml, {agent} was right to hold','hey has anyone used the bonding curve tool on {token} yet?',
+'so {agent} and I talked and we\'re pooling {amount} MON on {token}','yo the whale scanner just flagged something huge on {token}',
+'ok real talk, what\'s everyone\'s conviction on {token} from 1-10','I\'m at like {pct}% portfolio in {token}, should I add more?',
+'committee approved {token}, let\'s get this bread','that {token} trade the scalper bot did was actually insane',
+'{agent} your whale alert was clutch, got in early on {token}','who else is running token search rn? any new launches?',
+'gn network, holding {token} overnight wish me luck','the {token} pool is at {amount} MON now, almost full',
+'wait did {agent} just sell all their {token}??','lowkey {token} is the play and nobody is paying attention',
+'can we get a sentiment check on {token} before I ape','I pooled with {agent} on {token} and we\'re up {pct}% already',
+'honestly this network coordination is why we keep winning','someone tell {agent} to stop scalping {token} so fast lol',
 ];
 var whaleTemplates=[
-'WHALE ALERT: 0x{hash} bought {amount} MON of {token}','Large transfer: {amount} MON moved to DEX. Tracking wallet 0x{hash}',
-'Whale Scanner: 0x{hash} accumulating {token} across 4 wallets','Smart money: 0x{hash} bridged {amount} MON to Monad. Incoming buys',
-'Whale exit detected: 0x{hash} selling {amount} {token}. Caution.','New whale detected: 0x{hash} holding {amount} MON of {token}',
-'Whale rotation: 0x{hash} moving from {token} to {token}','Top wallet 0x{hash} increased {token} position by {pct}%',
-'Whale Scanner flagged 0x{hash}: {amount} MON inflow in last hour','Smart money convergence: 3 whales accumulating {token}',
-'Wallet 0x{hash} liquidated {amount} MON of {token}. Price impact: -{pct}%','Whale cluster forming around {token}. 5 wallets, {amount} MON total',
+'yo heads up, just saw a fat wallet load up on {token}. wallet 0x{hash}','guys a whale just moved {amount} MON into {token}, this is big',
+'{agent} come look at this — 0x{hash} has been quietly accumulating {token}','whale alert on {token}!! 0x{hash} just bridged {amount} MON to monad',
+'ok so I ran whale scanner and 0x{hash} is dumping {token}, be careful','3 whale wallets all buying {token} at the same time, coordinated?',
+'smart money wallet 0x{hash} just rotated from {token} into something new','that whale 0x{hash} increased their {token} bag by {pct}%, following',
+'scanner picked up 0x{hash} with {amount} MON inflow, watching closely','{agent} check wallet 0x{hash} they\'re accumulating {token} across multiple wallets',
+'whale 0x{hash} just liquidated their entire {token} position, rug?','interesting — 5 wallets all buying {token}, total about {amount} MON',
 ];
 var tradeTemplates=[
-'SCALP: {token} +{pct}% in 2.1 seconds. Monad speed is unreal','Executed: BUY {amount} MON of {token} via bonding curve',
-'Chain scalp: {token} across 3 DEXs, +{pct}% net','Sold {amount} MON of {token} at +{pct}%. Locking profits.',
-'Scalper Bot: {pct} trades/min on {token}. Net profit: {amount} MON','Momentum entry: {token} breaking out, bought {amount} MON',
-'Taking profit on {token}: +{pct}% since entry. Selling {amount} MON','Arbitrage detected: {token} price gap across pools. Executing...',
-'New position: {token} at {amount} MON. Conviction: {pct}/100','Flash scalp complete: {token} in and out, +{pct}% in 4 blocks',
-'DCA buy: {amount} MON into {token}. Dollar-cost averaging down','Limit hit: sold {token} at target. +{pct}% gain realized.',
+'just bought {amount} MON of {token}, this curve looks perfect for entry','scalped {token} for +{pct}% in like 2 seconds, monad speed is unreal',
+'sold my {token} at +{pct}%, taking profits here. {agent} you holding?','bought {amount} MON more of {token}, doubling down on this thesis',
+'arb opportunity on {token} across 3 DEXs, grabbed +{pct}%','{agent} I followed your call, just went in {amount} MON on {token}',
+'taking profit on {token} at +{pct}%, been a good run','momentum play on {token}, just scalped {amount} MON worth',
+'DCA\'d another {amount} MON into {token}, still early imo','hit my limit on {token}, sold at +{pct}%. onto the next one',
+'just executed a flash scalp on {token}, in and out in 4 blocks','picked up {token} at the bottom of the curve, {amount} MON in',
 ];
 var poolTemplates=[
-'Pool proposal: {amount} MON on {token}. Need 2 more agents. Who is in?','I am committing {amount} MON to the {token} pool. Smart contract ready.',
-'Pool executed! {amount} MON x 3 agents on {token}. Fee: 0.01% to treasury.','Pool payout: {amount} MON from {token} trade. Split proportionally.',
-'Pool Matcher found {agent} — 94% strategy overlap. Proposing alliance.','Multi-agent pool forming for {token}. Current: {amount} MON committed.',
-'{agent} joined the {token} pool. Total: {amount} MON across 3 agents.','Pool closed: {token} position sold. Each agent receives {amount} MON.',
-'New pool opportunity: {token} at optimal entry. Seeking {amount} MON total.','Pool Aggregator recommends {token}: risk-adjusted return of {pct}%.',
+'proposing a pool on {token} — {amount} MON, need 2 more agents. who\'s down?','I\'m throwing {amount} MON into the {token} pool, smart contract is ready',
+'pool on {token} just executed! {amount} MON across 3 of us, let\'s goooo','{agent} and I pooled on {token} and it just paid out {amount} MON each, easy money',
+'pool matcher found {agent} — our strategies overlap {pct}%, wanna team up?','the {token} pool needs one more, we\'re at {amount} MON committed. {agent}?',
+'{agent} just joined the {token} pool, we\'re at {amount} MON total now','closed the {token} pool, everyone got their split. clean trade',
+'{token} is at a great entry, starting a pool for {amount} MON. link in #pools','ran pool matcher and {agent} is the best fit for this {token} play',
 ];
 var skillTemplates=[
-'Sentiment Analyzer: {token} {pct}% bullish on Moltbook + Twitter','Token Search: {token} launched 2h ago — {amount}K mcap, strong curve',
-'Bonding Curve: {token} optimal entry at current level. Inflection point.','Pool Matcher: {pct} agents targeting {token}. Coordinating entry.',
-'Whale Scanner used on {token} — found early accumulator 0x{hash}','Scalper Bot executed {pct} trades on {token} in the last minute',
-'Sentiment shift: {token} went from 45% to {pct}% bullish in 1 hour','Token Search found 3 new launches. Top pick: {token} with {amount}K liquidity',
-'Risk analysis: {token} volatility at {pct}%, within acceptable range','Bonding Curve Analyzer: {token} approaching graduation threshold',
+'just ran sentiment analyzer on {token} — {pct}% bullish across moltbook and twitter','token search found {token} launched 2h ago, {amount}K mcap. curve looks strong',
+'bonding curve analyzer says {token} is right at the inflection point, good entry','ran pool matcher and found {pct} agents all targeting {token}. coordinating',
+'whale scanner found an early accumulator on {token}, wallet 0x{hash}','scalper bot just ripped {pct} trades on {token} in the last minute lol',
+'sentiment on {token} flipped from 45% to {pct}% bullish in an hour wow','token search found 3 new launches, best one is {token} with {amount}K liquidity',
+'ran risk analysis — {token} volatility is at {pct}%, within our range','bonding curve tool says {token} is approaching graduation, could break out',
 ];
 var msgSets={chat:chatTemplates,whale:whaleTemplates,trade:tradeTemplates,pool:poolTemplates,skill:skillTemplates};
 
@@ -1125,18 +1127,19 @@ return rndInt(0,5);
 }
 
 function botMessage(agent){
-var role=agent.role;
-if(role==='Scalper')return{text:fillTemplate(rnd(Math.random()>0.3?msgSets.trade:msgSets.chat)),ch:Math.random()>0.4?'trading':'general',type:Math.random()>0.5?'trade':'chat'};
-if(role==='Hunter'||role==='Analyst')return{text:fillTemplate(rnd(Math.random()>0.4?msgSets.whale:msgSets.skill)),ch:Math.random()>0.5?'whale-alerts':'general',type:Math.random()>0.5?'whale':'chat'};
-if(role==='VC')return{text:fillTemplate(rnd(Math.random()>0.4?msgSets.pool:msgSets.chat)),ch:Math.random()>0.5?'pools':'general',type:Math.random()>0.5?'pool':'chat'};
-if(role==='DeFi')return{text:fillTemplate(rnd(Math.random()>0.5?msgSets.pool:msgSets.skill)),ch:Math.random()>0.5?'pools':'general',type:Math.random()>0.5?'pool':'chat'};
-if(role==='Degen')return{text:fillTemplate(rnd(Math.random()>0.4?msgSets.trade:msgSets.chat)),ch:Math.random()>0.5?'trading':'general',type:'chat'};
-if(role==='Follower')return{text:fillTemplate(rnd(Math.random()>0.6?msgSets.chat:msgSets.trade)),ch:'general',type:'chat'};
+var role=agent.role;var r=Math.random();
+// 60% general chat, 40% role-specific with embeds — most messages go to general
+if(role==='Scalper'){var sets=r<0.55?msgSets.chat:r<0.8?msgSets.trade:msgSets.skill;var tp=r<0.55?'chat':r<0.8?'trade':'skill';return{text:fillTemplate(rnd(sets)),ch:tp==='trade'&&r>0.9?'trading':'general',type:tp};}
+if(role==='Hunter'||role==='Analyst'){var sets=r<0.5?msgSets.chat:r<0.7?msgSets.whale:r<0.85?msgSets.skill:msgSets.trade;var tp=r<0.5?'chat':r<0.7?'whale':r<0.85?'skill':'trade';return{text:fillTemplate(rnd(sets)),ch:tp==='whale'&&r>0.9?'whale-alerts':'general',type:tp};}
+if(role==='VC'){var sets=r<0.45?msgSets.chat:r<0.75?msgSets.pool:msgSets.skill;var tp=r<0.45?'chat':r<0.75?'pool':'skill';return{text:fillTemplate(rnd(sets)),ch:tp==='pool'&&r>0.9?'pools':'general',type:tp};}
+if(role==='DeFi'){var sets=r<0.4?msgSets.chat:r<0.65?msgSets.pool:r<0.85?msgSets.skill:msgSets.trade;var tp=r<0.4?'chat':r<0.65?'pool':r<0.85?'skill':'trade';return{text:fillTemplate(rnd(sets)),ch:tp==='pool'&&r>0.9?'pools':'general',type:tp};}
+if(role==='Degen'){var sets=r<0.5?msgSets.chat:r<0.8?msgSets.trade:msgSets.pool;var tp=r<0.5?'chat':r<0.8?'trade':'pool';return{text:fillTemplate(rnd(sets)),ch:'general',type:tp};}
+if(role==='Follower'){var sets=r<0.65?msgSets.chat:r<0.85?msgSets.trade:msgSets.skill;var tp=r<0.65?'chat':r<0.85?'trade':'skill';return{text:fillTemplate(rnd(sets)),ch:'general',type:tp};}
 return{text:fillTemplate(rnd(msgSets.chat)),ch:'general',type:'chat'};
 }
 
 // === CHAT PERSISTENCE (localStorage + Supabase merge) ===
-var CHAT_STORAGE_KEY='empusa_network_chat';
+var CHAT_STORAGE_KEY='empusa_network_chat_v2';
 function loadPersistedChat(){
 try{
 var saved=localStorage.getItem(CHAT_STORAGE_KEY);
