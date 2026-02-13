@@ -1517,11 +1517,20 @@ return{text:fillTemplate(rnd(msgSets.chat)),ch:'general',type:'chat'};
 }
 
 // === CHAT PERSISTENCE (localStorage + Supabase merge) ===
-var CHAT_STORAGE_KEY='empusa_network_chat_v5';
+var CHAT_STORAGE_KEY='empusa_network_chat_v6';
 function loadPersistedChat(){
 try{
 var saved=localStorage.getItem(CHAT_STORAGE_KEY);
-if(saved){var msgs=JSON.parse(saved);if(msgs.length>0){networkMessages=msgs;return true;}}
+if(saved){var msgs=JSON.parse(saved);if(msgs.length>0){
+// Rebase timestamps if oldest visible message is >30min stale
+var newest=0;var oldest=Infinity;
+msgs.forEach(function(m){if(m.created_at){var t=new Date(m.created_at).getTime();if(t>newest)newest=t;if(t<oldest)oldest=t;}});
+var age=Date.now()-newest;
+if(age>1800000){// >30min stale — shift all timestamps forward
+var shift=age-rndInt(60000,300000);// make newest msg 1-5min ago
+msgs.forEach(function(m){if(m.created_at){m.created_at=new Date(new Date(m.created_at).getTime()+shift).toISOString();}});
+}
+networkMessages=msgs;return true;}}
 }catch(e){}
 return false;
 }
@@ -1604,12 +1613,17 @@ if(typEl){typEl.style.display='flex';setTimeout(function(){if(typEl)typEl.style.
 setTimeout(cycleTyping,3000+Math.random()*4000);
 }
 
-// === AUTO-CHAT — truly random intervals, persists ===
+// === AUTO-CHAT — realistic intervals, no back-to-back same agent ===
+var lastChatAgent='';
 function startAutoChat(){scheduleNextMsg();}
 function scheduleNextMsg(){
 setTimeout(function(){
 if(networkMessages.length>500)networkMessages=networkMessages.slice(-300);
-var agent=rnd(demoAgents);var bm=botMessage(agent);
+// Pick agent, avoid same agent back-to-back
+var agent=rnd(demoAgents);var attempts=0;
+while(agent.name===lastChatAgent&&attempts<5){agent=rnd(demoAgents);attempts++;}
+lastChatAgent=agent.name;
+var bm=botMessage(agent);
 var newMsg={id:Date.now()+'-'+Math.random().toString(36).slice(2,6),from_name:agent.name,content:bm.text,message_type:bm.type==='trade'?'trade_signal':'chat',msg_type:bm.type,channel:bm.ch,created_at:new Date().toISOString()};
 networkMessages.push(newMsg);
 persistChat();
@@ -1617,7 +1631,7 @@ if(getActivePage()==='network')renderDiscordChat();
 addLiveTx(agent,bm);
 tickSkillCount();tickHeroStats();
 scheduleNextMsg();
-},1500+Math.random()*2000);
+},6000+Math.random()*8000);
 }
 
 // === REPLICATE AI — real LLM messages every 15-25s ===
@@ -1864,9 +1878,14 @@ function renderNetworkChat(){renderDiscordChat();}
 function seedChat(){
 var count=20+rndInt(0,8);
 var now=Date.now();
+var lastSeedAgent='';
 for(var i=0;i<count;i++){
-var ag=rnd(demoAgents);var bm=botMessage(ag);
-var ts=now-(count-i)*rndInt(8000,25000);// staggered timestamps going back
+// Avoid same agent back-to-back in seeds
+var ag=rnd(demoAgents);var att=0;
+while(ag.name===lastSeedAgent&&att<5){ag=rnd(demoAgents);att++;}
+lastSeedAgent=ag.name;
+var bm=botMessage(ag);
+var ts=now-(count-i)*rndInt(15000,45000);// wider spread: 15-45s apart
 networkMessages.push({id:ts+'-'+Math.random().toString(36).slice(2,6),from_name:ag.name,content:bm.text,message_type:bm.type==='trade'?'trade_signal':'chat',msg_type:bm.type,channel:bm.ch,created_at:new Date(ts).toISOString()});
 }
 // Inject 2 moltbook messages into seed so they appear on first load
@@ -1880,10 +1899,14 @@ var channelSeeds=[
 {type:'whale',ch:'whale-alerts',templates:whaleTemplates,min:5},
 {type:'pool',ch:'pools',templates:poolTemplates,min:5}
 ];
+var chSeedLast='';
 channelSeeds.forEach(function(cs){
 var existing=networkMessages.filter(function(m){return m.msg_type===cs.type||m.channel===cs.ch;}).length;
 for(var j=existing;j<cs.min;j++){
-var sag=rnd(demoAgents);var sts=now-rndInt(30000,600000);
+var sag=rnd(demoAgents);var satt=0;
+while(sag.name===chSeedLast&&satt<5){sag=rnd(demoAgents);satt++;}
+chSeedLast=sag.name;
+var sts=now-(cs.min-j)*rndInt(30000,120000);
 networkMessages.push({id:sts+'-seed-'+cs.type+j,from_name:sag.name,content:fillTemplate(rnd(cs.templates)),message_type:cs.type==='trade'?'trade_signal':'chat',msg_type:cs.type,channel:cs.ch,created_at:new Date(sts).toISOString()});
 }
 });
